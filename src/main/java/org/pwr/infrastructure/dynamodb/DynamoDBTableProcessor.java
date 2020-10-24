@@ -7,17 +7,13 @@ import software.amazon.awssdk.services.dynamodb.model.*;
 
 import javax.ejb.Startup;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.Initialized;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.persistence.Id;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.text.MessageFormat;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -100,12 +96,7 @@ class DynamoDBTableProcessor {
 
     @SuppressWarnings("unchecked")
     private static Class<?> getSourceType(Field field) {
-        return Arrays.stream(field.getAnnotation(AttributeConverter.class).value().getGenericInterfaces())
-                .map(interfaceClazz -> (ParameterizedType) interfaceClazz)
-                .map(parameterizedType -> parameterizedType.getActualTypeArguments()[0])
-                .map(type -> (Class<?>) type)
-                .findAny()
-                .orElseThrow(() -> new IllegalStateException(MessageFormat.format("Invalid converter for field: {0}", field.getName())));
+        return DynamoDBObjectMapper.mapToSourceType(field.getAnnotation(AttributeConverter.class).value());
     }
 
     private static ScalarAttributeType getTypeFromClass(Class<?> clazz) {

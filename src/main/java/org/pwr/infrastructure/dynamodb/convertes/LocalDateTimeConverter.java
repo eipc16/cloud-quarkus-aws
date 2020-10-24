@@ -4,7 +4,7 @@ import org.pwr.infrastructure.dynamodb.DynamoDBTypeConverter;
 
 import java.time.LocalDateTime;
 
-public class LocalDateTimeConverter implements DynamoDBTypeConverter<String, LocalDateTime> {
+public class LocalDateTimeConverter implements DynamoDBTypeConverter<LocalDateTime> {
 
     @Override
     public String convert(LocalDateTime target) {
