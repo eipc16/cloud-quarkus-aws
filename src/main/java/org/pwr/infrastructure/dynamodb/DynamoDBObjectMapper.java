@@ -126,7 +126,6 @@ public class DynamoDBObjectMapper {
     private <T> void trySetFieldValue(T target, Field field, AttributeValue attributeValue) throws IllegalAccessException {
         Class<?> declaredType = field.getType();
         field.setAccessible(true);
-
         if (attributeValue.nul() != null && attributeValue.nul()) {
             field.set(target, null);
         } else if (declaredType.equals(String.class)) {
@@ -158,27 +157,28 @@ public class DynamoDBObjectMapper {
         } else if (declaredType.equals(Double.class)) {
             field.set(target, parse(attributeValue.n(), Double::parseDouble));
         } else if (Collection.class.isAssignableFrom(declaredType)) {
-            if (field.isAnnotationPresent(AttributeConverter.class)) {
-                Class<? extends DynamoDBTypeConverter<?>> converterClass = field.getAnnotation(AttributeConverter.class).value();
-                DynamoDBTypeConverter<?> converter = CONVERTES_BY_NAME.computeIfAbsent(converterClass.getName(), converterClassName -> getConverterInstance(converterClass));
-                Collection<?> collection = Optional.ofNullable(attributeValue.ss())
-                        .map(Collection::stream)
-                        .map(vals -> vals.map(converter::parse).collect(Collectors.toList()))
-                        .orElseGet(Collections::emptyList);
-                field.set(target, collection);
-            } else {
-                Class<?> targetType = ((Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0]);
-                Collection<?> collection = Optional.ofNullable(attributeValue.ss())
-                        .map(Collection::stream)
-                        .map(vals -> vals.map(val -> parseToObject(targetType, val)).collect(Collectors.toList()))
-                        .orElseGet(Collections::emptyList);
-                field.set(target, collection);
-            }
+            Function<String, Object> mappingFunction = getMappingFunction(field);
+            Collection<?> collection = Optional.ofNullable(attributeValue.ss())
+                    .map(Collection::stream)
+                    .map(vals -> vals.map(mappingFunction)
+                            .collect(Collectors.toList()))
+                    .orElseGet(Collections::emptyList);
+            field.set(target, collection);
         } else {
             throw new IllegalAccessException(MessageFormat.format(
                     "Could not parse {0} to value of field {1} of type {2",
                     attributeValue.toString(), field.getName(), declaredType.getSimpleName()));
         }
+    }
+
+    private Function<String, Object> getMappingFunction(Field field) {
+        if(field.isAnnotationPresent(AttributeConverter.class)) {
+            Class<? extends DynamoDBTypeConverter<?>> converterClass = field.getAnnotation(AttributeConverter.class).value();
+            DynamoDBTypeConverter<?> converter = CONVERTES_BY_NAME.computeIfAbsent(converterClass.getName(), converterClassName -> getConverterInstance(converterClass));
+            return converter::parse;
+        }
+        Class<?> targetType = ((Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0]);
+        return stringValue -> parseToObject(targetType, stringValue);
     }
 
     private Object parseToObject(Class<?> targetClass, String stringValue) {
