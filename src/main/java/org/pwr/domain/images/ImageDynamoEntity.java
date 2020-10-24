@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-@DynamoDBTable(name = "images")
+@DynamoDBTable(name = "images", forceRebuild = true)
 public class ImageDynamoEntity {
 
     @Id
@@ -26,7 +26,7 @@ public class ImageDynamoEntity {
     @AttributeConverter(LocalDateTimeConverter.class)
     private LocalDateTime uploadetAt;
 
-    private List<String> testListString;
+    private List<Long> testListString;
 
     public ImageDynamoEntity() {
         // empty for deserialization
@@ -58,7 +58,7 @@ public class ImageDynamoEntity {
         private String imageName;
         private String shortDescription;
         private LocalDateTime uploadetAt;
-        private List<String> listString = new ArrayList<>();
+        private List<Long> listString = new ArrayList<>();
 
         public Builder withId(Long id) {
             this.id = id;
@@ -80,7 +80,7 @@ public class ImageDynamoEntity {
             return this;
         }
 
-        public Builder withListString(Collection<String> listString) {
+        public Builder withListString(Collection<Long> listString) {
             this.listString.addAll(listString);
             return this;
         }

@@ -126,6 +126,7 @@ public class DynamoDBObjectMapper {
     private <T> void trySetFieldValue(T target, Field field, AttributeValue attributeValue) throws IllegalAccessException {
         Class<?> declaredType = field.getType();
         field.setAccessible(true);
+
         if (attributeValue.nul() != null && attributeValue.nul()) {
             field.set(target, null);
         } else if (declaredType.equals(String.class)) {
@@ -169,7 +170,7 @@ public class DynamoDBObjectMapper {
                 Class<?> targetType = ((Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0]);
                 Collection<?> collection = Optional.ofNullable(attributeValue.ss())
                         .map(Collection::stream)
-                        .map(vals -> vals.map(targetType::cast).collect(Collectors.toList()))
+                        .map(vals -> vals.map(val -> parseToObject(targetType, val)).collect(Collectors.toList()))
                         .orElseGet(Collections::emptyList);
                 field.set(target, collection);
             }
@@ -177,6 +178,33 @@ public class DynamoDBObjectMapper {
             throw new IllegalAccessException(MessageFormat.format(
                     "Could not parse {0} to value of field {1} of type {2",
                     attributeValue.toString(), field.getName(), declaredType.getSimpleName()));
+        }
+    }
+
+    private Object parseToObject(Class<?> targetClass, String stringValue) {
+        if (String.class.equals(targetClass)) {
+            return stringValue;
+        } else if (Long.class.equals(targetClass)) {
+            return parse(stringValue, Long::parseLong);
+        } else if (Double.class.equals(targetClass)) {
+            return parse(stringValue, Double::parseDouble);
+        } else if (Float.class.equals(targetClass)) {
+            return parse(stringValue, Float::parseFloat);
+        } else if (Short.class.equals(targetClass)) {
+            return parse(stringValue, Short::parseShort);
+        } else if (Integer.class.equals(targetClass)) {
+            return parse(stringValue, Integer::parseInt);
+        } else if (Boolean.class.equals(targetClass)) {
+            return parse(stringValue, Boolean::parseBoolean);
+        } else if (Character.class.equals(targetClass)) {
+            if (stringValue == null || stringValue.length() < 1) {
+                return null;
+            }
+            return stringValue.charAt(0);
+        } else {
+            throw new IllegalStateException(MessageFormat.format(
+                    "Could not parse {0} to type {1}",
+                    stringValue, targetClass.getSimpleName()));
         }
     }
 
