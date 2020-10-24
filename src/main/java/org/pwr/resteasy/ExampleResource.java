@@ -1,4 +1,4 @@
-package org.acme.resteasy;
+package org.pwr.resteasy;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;

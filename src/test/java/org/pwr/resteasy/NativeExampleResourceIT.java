@@ -1,4 +1,4 @@
-package org.acme.resteasy;
+package org.pwr.resteasy;
 
 import io.quarkus.test.junit.NativeImageTest;
 
