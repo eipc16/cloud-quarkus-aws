@@ -31,7 +31,7 @@ public class ImagesRepository {
                 .withName("Test name")
                 .withShortDescription("Description_6L")
                 .withTime(LocalDateTime.now())
-                .withListString(List.of(1L, 3L, 4L))
+                .withListString(List.of(1L, 3L, 4L, 7L))
                 .build();
         saveImage(entityToCreate);
         ImageDynamoEntity fetchedEntity = getById(7L);

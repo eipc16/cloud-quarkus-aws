@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-@DynamoDBTable(name = "images", forceRebuild = true)
+@DynamoDBTable(name = "images")
 public class ImageDynamoEntity {
 
     @Id
