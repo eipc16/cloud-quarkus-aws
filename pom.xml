@@ -19,8 +19,10 @@
         <compiler-plugin.version>3.8.1</compiler-plugin.version>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
 
+        <!-- AWS config -->
+        <aws.version>2.15.14</aws.version>
 
-        <!-- Frontend condif -->
+        <!-- Frontend config -->
         <frontend-src-dir>${project.basedir}/ui</frontend-src-dir>
         <frontend-target-dir>${project.build.directory}/classes/META-INF/resources</frontend-target-dir>
         <node.version>v12.16.1</node.version>
@@ -39,6 +41,24 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
+        <!-- AWS -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>ec2</artifactId>
+            <version>${aws.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>${aws.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>dynamodb</artifactId>
+            <version>${aws.version}</version>
+        </dependency>
+
+        <!-- Quarkus -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-resteasy-multipart</artifactId>
