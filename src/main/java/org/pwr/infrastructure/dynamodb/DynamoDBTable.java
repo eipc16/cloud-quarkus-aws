@@ -9,7 +9,10 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 public @interface DynamoDBTable {
     String name();
+
     long readCapacity() default 6L;
+
     long writeCapacity() default 5L;
+
     boolean forceRebuild() default false;
 }

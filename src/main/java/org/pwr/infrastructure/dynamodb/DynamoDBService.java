@@ -6,22 +6,26 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
 import software.amazon.awssdk.services.dynamodb.waiters.DynamoDbWaiter;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
+import java.text.MessageFormat;
+import java.util.Map;
 import java.util.Optional;
 
-@ApplicationScoped
-class DynamoDBService {
+@Dependent
+public class DynamoDBService {
 
     private static final Logger LOGGER = Logger.getLogger(DynamoDBService.class);
 
     private final DynamoDbClient dynamoDbClient;
+    private final DynamoDBObjectMapper objectMapper;
     private static DynamoDbWaiter dynamoDbWaiter;
 
     @Inject
-    public DynamoDBService(DynamoDbClient dynamoDbClient) {
+    public DynamoDBService(DynamoDbClient dynamoDbClient, DynamoDBObjectMapper objectMapper) {
         this.dynamoDbClient = dynamoDbClient;
         dynamoDbWaiter = dynamoDbClient.waiter();
+        this.objectMapper = objectMapper;
     }
 
     void createTable(TableDefinition tableDefinition) {
@@ -30,7 +34,9 @@ class DynamoDBService {
         if (tableDefinition.isForceRebuild()) {
             deleteTable(tableDefinition.getTableName());
         }
-        createTable(tableDefinition.asCreateTableRequest());
+        if (findTable(tableDefinition.getTableName()).isEmpty()) {
+            createTable(tableDefinition.asCreateTableRequest());
+        }
     }
 
     void deleteTable(String tableName) {
@@ -74,5 +80,67 @@ class DynamoDBService {
             LOGGER.errorf("Could not create table: %s. Exception: %s", createTableRequest.tableName(), ex.getMessage());
         }
         return Optional.empty();
+    }
+
+    @SuppressWarnings("unchecked")
+    public boolean saveEntity(Object object) {
+        if (!isDynamoEntity(object)) {
+            throw new IllegalStateException(MessageFormat.format(
+                    "Cannot save {0} entity because it does not belong to any DynamoDBTable", object.getClass().getSimpleName()));
+        }
+        String tableName = object.getClass().getAnnotation(DynamoDBTable.class).name();
+        Map<String, AttributeValue> values = objectMapper.mapEntityToValuesByNames(object);
+        PutItemRequest request = createPutItemRequest(tableName, values);
+        return saveEntity(request);
+    }
+
+    private PutItemRequest createPutItemRequest(String tableName, Map<String, AttributeValue> values) {
+        return PutItemRequest.builder()
+                .tableName(tableName)
+                .item(values)
+                .build();
+    }
+
+    private <T extends Object> boolean isDynamoEntity(T object) {
+        return isDynamoEntity(object.getClass());
+    }
+
+    private boolean isDynamoEntity(Class<?> clazz) {
+        return clazz.isAnnotationPresent(DynamoDBTable.class);
+    }
+
+    private <T> boolean saveEntity(PutItemRequest putItemRequest) {
+        try {
+            dynamoDbClient.putItem(putItemRequest);
+            return true;
+        } catch (DynamoDbException ex) {
+            LOGGER.errorf("Could not save entity to table: %s. Exception: %s", putItemRequest.tableName(), ex.getMessage());
+        }
+        return false;
+    }
+
+    public <T> Optional<T> getEntity(Class<T> targetClass, Map<String, AttributeValue> keys) {
+        if (!isDynamoEntity(targetClass)) {
+            throw new IllegalStateException(MessageFormat.format(
+                    "Cannot fetch {0} entity because it does not belong to any DynamoDBTable", targetClass.getSimpleName()));
+        }
+        String tableName = targetClass.getAnnotation(DynamoDBTable.class).name();
+        return getEntity(targetClass, createGetItemRequest(tableName, keys));
+    }
+
+    private GetItemRequest createGetItemRequest(String tableName, Map<String, AttributeValue> keys) {
+        return GetItemRequest.builder()
+                .tableName(tableName)
+                .key(keys)
+                .build();
+    }
+
+    private <T> Optional<T> getEntity(Class<T> targetClass, GetItemRequest request) {
+        try {
+            GetItemResponse response = dynamoDbClient.getItem(request);
+            return Optional.ofNullable(objectMapper.mapToEntity(targetClass, response.item()));
+        } catch (ResourceNotFoundException ex) {
+            return Optional.empty();
+        }
     }
 }
