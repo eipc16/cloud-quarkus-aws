@@ -48,7 +48,7 @@ public class DynamoDBObjectMapper {
             return getValueFromField(object, field)
                     .map(val -> AttributeValue.builder()
                             .ss(((Collection<?>) val).stream()
-                                    .map(Object::toString)
+                                    .map(this::getObjectAsString)
                                     .collect(Collectors.toList()))
                             .build());
         } else if (Boolean.class.equals(declaredType)) {
@@ -69,6 +69,14 @@ public class DynamoDBObjectMapper {
                 .map(stringVal -> AttributeValue.builder()
                         .s(stringVal)
                         .build());
+    }
+
+    private String getObjectAsString(Object object) {
+        try {
+            return OBJECT_MAPPER.writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            return null;
+        }
     }
 
     private Optional<Object> getValueFromField(Object object, Field field) {
@@ -165,9 +173,13 @@ public class DynamoDBObjectMapper {
                     .orElseGet(Collections::emptyList);
             field.set(target, collection);
         } else {
-            throw new IllegalAccessException(MessageFormat.format(
-                    "Could not parse {0} to value of field {1} of type {2",
-                    attributeValue.toString(), field.getName(), declaredType.getSimpleName()));
+            try {
+                field.set(target, OBJECT_MAPPER.readValue(attributeValue.s(), declaredType));
+            } catch (JsonProcessingException e) {
+                throw new IllegalAccessException(MessageFormat.format(
+                        "Could not parse {0} to value of field {1} of type {2",
+                        attributeValue.toString(), field.getName(), declaredType.getSimpleName()));
+            }
         }
     }
 
@@ -202,9 +214,13 @@ public class DynamoDBObjectMapper {
             }
             return stringValue.charAt(0);
         } else {
-            throw new IllegalStateException(MessageFormat.format(
-                    "Could not parse {0} to type {1}",
-                    stringValue, targetClass.getSimpleName()));
+            try {
+                return OBJECT_MAPPER.readValue(stringValue, targetClass);
+            } catch (JsonProcessingException e) {
+                throw new IllegalStateException(MessageFormat.format(
+                        "Could not parse {0} to type {1}",
+                        stringValue, targetClass.getSimpleName()));
+            }
         }
     }
 
