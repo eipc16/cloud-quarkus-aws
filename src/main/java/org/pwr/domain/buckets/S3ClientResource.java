@@ -1,16 +1,17 @@
 package org.pwr.domain.buckets;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -18,10 +19,12 @@ import javax.ws.rs.core.StreamingOutput;
 
 import org.jboss.resteasy.annotations.jaxrs.PathParam;
 
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
 @Path("/s3")
@@ -40,6 +43,30 @@ public class S3ClientResource extends CommonResource {
         response.header("Content-Disposition", "attachment;filename=" + objectKey);
         response.header("Content-Type", object.contentType());
         return response.build();
+    }
+
+    @POST
+    @Path("/{bucketName}/upload")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response uploadFile(@PathParam String bucketName) {
+        MultipartBody body = new MultipartBody();
+
+        byte[] array = new byte[7];
+        new Random().nextBytes(array);
+        String fileName = new String(array, StandardCharsets.UTF_8);
+
+        body.fileName = fileName + ".txt";
+        body.mimeType = "text/plain";
+        body.file = new ByteArrayInputStream("HELLO WORLD".getBytes(StandardCharsets.UTF_8));
+
+        PutObjectResponse putResponse = s3.putObject(buildPutRequest(bucketName, body),
+                RequestBody.fromFile(uploadToTemp(body.file)));
+        if (putResponse != null) {
+            return Response.ok().status(Response.Status.CREATED).build();
+        } else {
+            return Response.serverError().build();
+        }
     }
 
     @GET
