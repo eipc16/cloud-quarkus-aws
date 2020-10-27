@@ -1,15 +1,17 @@
 package org.pwr.domain.buckets;
 
-import java.io.File;
+import software.amazon.awssdk.services.s3.model.Bucket;
+import software.amazon.awssdk.services.s3.model.S3Object;
+
 import java.util.List;
 
 public interface BucketsService {
 
-    List<BucketInformation> getBucketList();
+    List<Bucket> getBucketList();
 
-    List<String> getBucketFiles(String bucketName);
+    List<S3Object> getBucketFiles(String bucketName);
 
-    FileDetails uploadFile(String bucketName, File file);
+    FileDetails uploadFile(String bucketName, MultipartBody file);
 
-    File downloadFile(FileDetails fileDetails);
+    StreamingResponse downloadFile(FileDetails fileDetails);
 }

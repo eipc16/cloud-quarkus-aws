@@ -3,6 +3,7 @@ package org.pwr.domain.buckets;
 import java.io.InputStream;
 
 import javax.ws.rs.FormParam;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.core.MediaType;
 
 import org.jboss.resteasy.annotations.providers.multipart.PartType;
@@ -17,7 +18,7 @@ public class MultipartBody {
     @PartType(MediaType.TEXT_PLAIN)
     public String fileName;
 
-    @FormParam("mimetype")
+    @FormParam("mimeType")
     @PartType(MediaType.TEXT_PLAIN)
     public String mimeType;
 }

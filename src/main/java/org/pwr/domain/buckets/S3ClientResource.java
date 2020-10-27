@@ -19,6 +19,7 @@ import javax.ws.rs.core.StreamingOutput;
 
 import org.jboss.resteasy.annotations.jaxrs.PathParam;
 
+import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -27,53 +28,37 @@ import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
-@Path("/s3")
-public class S3ClientResource extends CommonResource {
+@Path("/buckets")
+public class S3ClientResource {
+
     @Inject
-    S3Client s3;
+    private BucketServiceImpl bucketsService;
 
     @GET
-    @Path("{bucketName}/download/{objectKey}")
+    @Path("{bucketName}/files/{objectKey}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response downloadFile(@PathParam("bucketName") String bucketName, @PathParam("objectKey") String objectKey) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        GetObjectResponse object = s3.getObject(buildGetRequest(bucketName, objectKey), ResponseTransformer.toOutputStream(baos));
-
-        ResponseBuilder response = Response.ok((StreamingOutput) baos::writeTo);
-        response.header("Content-Disposition", "attachment;filename=" + objectKey);
-        response.header("Content-Type", object.contentType());
-        return response.build();
+        FileDetails details = new FileDetails(bucketName, objectKey);
+        StreamingResponse output = bucketsService.downloadFile(details);
+        return Response.ok(output.getOutput())
+                .header("Content-Disposition", "attachment;filename=" + objectKey)
+                .header("Content-Type", output.getContentType())
+                .build();
     }
 
     @POST
-    @Path("/{bucketName}/upload")
+    @Path("/{bucketName}/files")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response uploadFile(@PathParam String bucketName) {
-        MultipartBody body = new MultipartBody();
-
-        byte[] array = new byte[7];
-        new Random().nextBytes(array);
-        String fileName = new String(array, StandardCharsets.UTF_8);
-
-        body.fileName = fileName + ".txt";
-        body.mimeType = "text/plain";
-        body.file = new ByteArrayInputStream("HELLO WORLD".getBytes(StandardCharsets.UTF_8));
-
-        PutObjectResponse putResponse = s3.putObject(buildPutRequest(bucketName, body),
-                RequestBody.fromFile(uploadToTemp(body.file)));
-        if (putResponse != null) {
-            return Response.ok().status(Response.Status.CREATED).build();
-        } else {
-            return Response.serverError().build();
-        }
+    @Produces(MediaType.APPLICATION_JSON)
+    public FileDetails uploadFile(@PathParam String bucketName,
+                                  @MultipartForm MultipartBody file) {
+        return bucketsService.uploadFile(bucketName, file);
     }
 
     @GET
-    @Path("buckets")
     @Produces(MediaType.APPLICATION_JSON)
     public List<BucketInformation> listBuckets() {
-        return s3.listBuckets().buckets().stream()
+        return bucketsService.getBucketList().stream()
                 .map(bucket -> new BucketInformation(bucket.name(), LocalDateTime.ofInstant(bucket.creationDate(), ZoneOffset.UTC)))
                 .collect(Collectors.toList());
     }
@@ -83,10 +68,8 @@ public class S3ClientResource extends CommonResource {
     @Path("{bucketName}")
     @Produces(MediaType.APPLICATION_JSON)
     public List<FileObject> listFiles(@PathParam("bucketName") String bucketName) {
-        ListObjectsRequest listRequest = ListObjectsRequest.builder().bucket(bucketName).build();
-
-        //HEAD S3 objects to get metadata
-        return s3.listObjects(listRequest).contents().stream().sorted(Comparator.comparing(S3Object::lastModified).reversed())
-                .map(FileObject::from).collect(Collectors.toList());
+        return bucketsService.getBucketFiles(bucketName).stream()
+                .map(FileObject::from)
+                .collect(Collectors.toList());
     }
 }

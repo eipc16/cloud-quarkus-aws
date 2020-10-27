@@ -8,9 +8,14 @@ import java.util.Date;
 import java.util.UUID;
 
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-abstract public class CommonResource {
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
+
+@Dependent
+public class S3ResourceHelper {
     private final static String TEMP_DIR = System.getProperty("java.io.tmpdir");
 
     protected PutObjectRequest buildPutRequest(String bucketName, MultipartBody file) {
@@ -18,6 +23,7 @@ abstract public class CommonResource {
                 .bucket(bucketName)
                 .key(file.fileName)
                 .contentType(file.mimeType)
+                .acl(ObjectCannedACL.PUBLIC_READ)
                 .build();
     }
 

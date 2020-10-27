@@ -1,12 +1,29 @@
 package org.pwr.domain.buckets;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class FileDetails {
 
+    @JsonProperty("bucketName")
     private String bucketName;
-    private String relativeUrl;
 
-    public FileDetails(String bucketName, String relativeUrl) {
+    @JsonProperty("objectKey")
+    private String objectKey;
+
+    public FileDetails() {
+        // Empty for deserialization
+    }
+
+    public FileDetails(String bucketName, String objectKey) {
         this.bucketName = bucketName;
-        this.relativeUrl = relativeUrl;
+        this.objectKey = objectKey;
+    }
+
+    public String getBucketName() {
+        return bucketName;
+    }
+
+    public String getObjectKey() {
+        return objectKey;
     }
 }

@@ -83,7 +83,7 @@ public class DynamoDBService {
     }
 
     @SuppressWarnings("unchecked")
-    public boolean saveEntity(Object object) {
+    public <T> T saveEntity(Class<T> clazz, Object object) {
         if (!isDynamoEntity(object)) {
             throw new IllegalStateException(MessageFormat.format(
                     "Cannot save {0} entity because it does not belong to any DynamoDBTable", object.getClass().getSimpleName()));
@@ -91,7 +91,8 @@ public class DynamoDBService {
         String tableName = object.getClass().getAnnotation(DynamoDBTable.class).name();
         Map<String, AttributeValue> values = objectMapper.mapEntityToValuesByNames(object);
         PutItemRequest request = createPutItemRequest(tableName, values);
-        return saveEntity(request);
+        saveEntity(request);
+        return objectMapper.mapToEntity(clazz, values);
     }
 
     private PutItemRequest createPutItemRequest(String tableName, Map<String, AttributeValue> values) {
@@ -142,5 +143,31 @@ public class DynamoDBService {
         } catch (ResourceNotFoundException ex) {
             return Optional.empty();
         }
+    }
+
+    public <T> boolean deleteEntity(Class<T> targetClass, Map<String, AttributeValue> keys) {
+        if (!isDynamoEntity(targetClass)) {
+            throw new IllegalStateException(MessageFormat.format(
+                    "Cannot delete {0} entity because it does not belong to any DynamoDBTable", targetClass.getSimpleName()));
+        }
+        String tableName = targetClass.getAnnotation(DynamoDBTable.class).name();
+        return deleteEntity(createDeleteItemRequest(tableName, keys));
+    }
+
+    private DeleteItemRequest createDeleteItemRequest(String tableName, Map<String, AttributeValue> keys) {
+        return DeleteItemRequest.builder()
+                .tableName(tableName)
+                .key(keys)
+                .build();
+    }
+
+    private boolean deleteEntity(DeleteItemRequest request) {
+        try {
+            dynamoDbClient.deleteItem(request);
+            return true;
+        } catch (ResourceNotFoundException ex) {
+            LOGGER.warnf("Could not remove entity. Cause: {}", ex.getMessage());
+        }
+        return false;
     }
 }
