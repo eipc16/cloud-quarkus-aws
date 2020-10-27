@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.persistence.GeneratedValue;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 @ApplicationScoped
 public class DynamoDBObjectMapper {
 
+    private static final Random RANDOM = new Random();
     private static final Map<String, DynamoDBTypeConverter<?>> CONVERTES_BY_NAME = new ConcurrentHashMap<>();
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -26,10 +28,29 @@ public class DynamoDBObjectMapper {
     }
 
     private AttributeValue mapToAttributeValue(Object object, Field field) {
+        // hack for id generation
+        if(field.isAnnotationPresent(GeneratedValue.class) && getValueFromField(object, field).isEmpty()) {
+            return getRandomId(field);
+        }
         return getValueAsAttributeValue(object, field)
                 .orElseGet(() -> AttributeValue.builder()
                         .nul(true)
                         .build());
+    }
+
+    private AttributeValue getRandomId(Field field) {
+        Class<?> declaredType = field.getType();
+        if (String.class.equals(declaredType)) {
+            return AttributeValue.builder()
+                    .s(UUID.randomUUID().toString())
+                    .build();
+        } else if (Number.class.isAssignableFrom(declaredType)) {
+            return AttributeValue.builder()
+                    .n(String.valueOf(RANDOM.nextInt(50000)))
+                    .build();
+        } else {
+            throw new IllegalStateException("Current only supporting @GeneratedValue annotation for String and Number classes");
+        }
     }
 
     private Optional<AttributeValue> getValueAsAttributeValue(Object object, Field field) {
