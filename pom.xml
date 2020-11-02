@@ -52,6 +52,10 @@
             <artifactId>annotation-detector</artifactId>
             <version>3.0.5</version>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>rekognition</artifactId>
+        </dependency>
 
         <!-- AWS -->
         <dependency>

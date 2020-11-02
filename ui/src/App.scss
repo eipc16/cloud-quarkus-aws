@@ -1,0 +1,13 @@
+html, body {
+  height: 100%;
+}
+
+.app--title {
+  & > .title {
+    padding: 5px;
+  }
+}
+
+.route--container {
+  padding: 20px;
+}
