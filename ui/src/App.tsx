@@ -36,12 +36,11 @@ const RoutesComponent: React.FC<{ routes: AppRoute[] }> = ({routes}) => (
     <React.Fragment>
         {
             routes.map((route, index) => (
-                <div className='route--container'>
-                    <Route key={index}
-                           path={route.path}
-                           exact={route.exact || false}
-                           children={<route.component/>}/>
-                </div>
+                <Route key={index}
+                       path={route.path}
+                       exact={route.exact || false}
+                       children={<div className='route--container'><route.component/></div>}
+                />
             ))
         }
     </React.Fragment>

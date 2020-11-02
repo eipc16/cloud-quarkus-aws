@@ -1,0 +1,50 @@
+.images--component {
+  display: flex;
+  height: 100%;
+  padding: 20px;
+
+  & > .image--upload--form {
+    width: 30%;
+  }
+
+  & > .image--details {
+    width: 100%;
+  }
+}
+
+.image--submit--form {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  & > .form--input {
+    margin-top: 50px;
+  }
+}
+
+.image--display {
+  padding: 50px;
+  display: flex;
+  crop: auto;
+  justify-content: center;
+
+  & .image {
+    max-width: 80%;
+    height: auto;
+  }
+}
+
+.image--search {
+  display: flex;
+  justify-content: flex-end;
+  margin-right: 50px;
+
+  & > .image--search--element {
+    margin-right: 5px;
+  }
+
+  & > .input--id {
+    margin-right: 15px;
+    width: 150px;
+  }
+}

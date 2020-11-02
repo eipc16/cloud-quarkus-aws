@@ -4,6 +4,7 @@ import WorkIcon from '@material-ui/icons/Work';
 import ImageIcon from '@material-ui/icons/Image';
 import PhotoLibraryIcon from '@material-ui/icons/PhotoLibrary';
 import {BucketsComponent} from "./components/buckets/BucketsComponent";
+import {ImagesComponent} from "./components/images/ImagesComponent";
 
 export var routes: AppRoute[] = [
     {
@@ -14,10 +15,10 @@ export var routes: AppRoute[] = [
         component: () => <BucketsComponent />
     },
     {
-        path: "/route",
+        path: "/images",
         label: 'Images',
         icon: <PhotoLibraryIcon />,
-        component: () => <div>Second</div>
+        component: () => <ImagesComponent />
     },
     {
         path: "/rekognition",

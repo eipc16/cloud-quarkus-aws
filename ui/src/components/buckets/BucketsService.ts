@@ -24,7 +24,7 @@ export async function fetchFiles(bucket: Bucket) {
 
 export function downloadFile(bucketName: string, file: FileObject) {
     axios({
-        url: `http://localhost:8080/buckets/${bucketName}/files/${file.objectKey}`,
+        url: getFileUrl(bucketName, file.objectKey),
         method: 'GET',
         responseType: 'blob'
     }).then((response: AxiosResponse<any>) => {
@@ -37,6 +37,10 @@ export function downloadFile(bucketName: string, file: FileObject) {
         link.click();
         document.body.removeChild(link);
     })
+}
+
+export function getFileUrl(bucketName: String, objectKey: string) {
+    return `http://localhost:8080/buckets/${bucketName}/files/${objectKey}`
 }
 
 export async function uploadFile(bucketName:string, file: File) {

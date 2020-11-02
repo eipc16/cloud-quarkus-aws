@@ -2,7 +2,6 @@ package org.pwr.domain.images;
 
 import org.jboss.resteasy.annotations.jaxrs.PathParam;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
-import org.pwr.domain.buckets.MultipartBody;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
