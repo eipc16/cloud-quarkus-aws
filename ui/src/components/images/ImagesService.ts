@@ -83,6 +83,11 @@ export async function recognizeLabel(bucketName: string, imageName: string) {
         .then((response: AxiosResponse<LabelDetectionResponse>) => response.data);
 }
 
+export async function recognizeFace(bucketName: string, imageName: string) {
+    return axios.get(`http://localhost:8080/buckets/${bucketName}/${imageName}/face`)
+        .then((response: AxiosResponse<Array<number>>) => response.data);
+}
+
 export function deleteImageById(imageId: number) {
     return axios.delete(`http://localhost:8080/images/${imageId}`)
 }

@@ -4,7 +4,7 @@ import {
     deleteImageById,
     getImageById,
     ImageDetails,
-    ImageResponse, LabelDetectionResponse, recognizeLabel,
+    ImageResponse, LabelDetectionResponse, recognizeFace, recognizeLabel,
     recognizeTextByImageName, TextDetectionResponse,
     uploadImage
 } from "./ImagesService";
@@ -105,6 +105,7 @@ const ImageDetailsComponent: React.FC<ImageDetailsProps> = ({currentImageId, onC
     const [currentImage, setCurrentImage] = useState<ImageResponse | null> ( null);
     const [detectedTextResponse, setDetectedTextResponse] = useState<TextDetectionResponse | null> (null);
     const [detectedLabelResponse, setDetectedLabelResponse] = useState<LabelDetectionResponse | null> (null);
+    const [detectedFacesResponse, setDetectedFacesResponse] = useState<Array<number> | null> (null);
     const [numberFieldValue, setNumberFieldValue] = useState<number |null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -160,6 +161,16 @@ const ImageDetailsComponent: React.FC<ImageDetailsProps> = ({currentImageId, onC
         }
     };
 
+    const handleFacesRecognition = () => {
+        if(currentImage != null) {
+            setIsLoading(true);
+            recognizeFace(currentImage.fileInfo.bucketName, currentImage.fileInfo.objectKey).then((res) => {
+                setDetectedFacesResponse(res);
+                setIsLoading(false);
+            });
+        }
+    };
+
     const handleRemoveImage = () => {
         if(currentImage != null) {
             deleteImageById(currentImage.id).then((res) => onCurrentImageIdChanged(null));
@@ -194,6 +205,13 @@ const ImageDetailsComponent: React.FC<ImageDetailsProps> = ({currentImageId, onC
                         color="primary"
                 >
                     Recognize labels
+                </Button>
+                <Button className='image--search--element'
+                        onClick={handleFacesRecognition}
+                        variant="contained"
+                        color="primary"
+                >
+                    Recognize faces
                 </Button>
                 <Button className='image--search--element'
                         onClick={handleRemoveImage}
@@ -238,6 +256,18 @@ const ImageDetailsComponent: React.FC<ImageDetailsProps> = ({currentImageId, onC
                             return (<ul>
                                 <li>Detected label: {labelResponse.name}</li>
                                 <li>Confidence: {labelResponse.confidence}</li>
+                            </ul>)
+                        })
+                    ) : false
+                }
+            </div>
+            <div><h3>Probability of contains face:</h3></div>
+            <div className='image--detected--text'>
+                {
+                    detectedFacesResponse ? (
+                        detectedFacesResponse.map(faceResponse => {
+                            return (<ul>
+                                <li>Confidence: {faceResponse}</li>
                             </ul>)
                         })
                     ) : false

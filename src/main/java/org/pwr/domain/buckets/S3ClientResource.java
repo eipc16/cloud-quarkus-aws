@@ -113,4 +113,33 @@ public class S3ClientResource {
         }
         return labelsDetails;
     }
+
+    @GET
+    @Path("{bucketName}/{fileName}/face")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Float> detectFaces(@PathParam("bucketName") String bucketName, @PathParam("fileName") String fileName) {
+        RekognitionClient client = RekognitionClient.builder()
+                .region(Region.US_EAST_1)
+                .build();
+
+        DetectFacesResponse detectFacesResponse = client.detectFaces(DetectFacesRequest.builder()
+                .image(Image.builder()
+                        .s3Object(S3Object.builder()
+                                .bucket(bucketName)
+                                .name(fileName)
+                                .build())
+                        .build())
+                .attributes(Attribute.ALL)
+                .build());
+
+        List <FaceDetail> faceDetails = detectFacesResponse.faceDetails();
+        List <Float> containsFace = new ArrayList<>();
+        for (FaceDetail face: faceDetails) {
+                containsFace.add(face.confidence());
+        }
+        if(containsFace.size() == 0)
+            containsFace.add((float) 0);
+
+        return containsFace;
+    }
 }
