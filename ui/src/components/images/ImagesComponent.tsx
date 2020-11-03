@@ -4,8 +4,11 @@ import {
     deleteImageById,
     getImageById,
     ImageDetails,
-    ImageResponse, LabelDetectionResponse, recognizeLabel,
-    recognizeTextByImageName, TextDetectionResponse,
+    ImageResponse,
+    LabelDetectionResponse,
+    recognizeLabel,
+    recognizeTextByImageName,
+    TextDetectionResponse,
     uploadImage
 } from "./ImagesService";
 import TextField from "@material-ui/core/TextField";
@@ -14,7 +17,7 @@ import Button from '@material-ui/core/Button'
 import './ImagesComponent.scss';
 import {getFileUrl} from "../buckets/BucketsService";
 
-const ImagesForm: React.FC<{onImageUploaded: (image: number) => void}> = ({onImageUploaded}) => {
+const ImagesForm: React.FC<{ onImageUploaded: (image: number) => void }> = ({onImageUploaded}) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const formik = useFormik({
@@ -25,12 +28,12 @@ const ImagesForm: React.FC<{onImageUploaded: (image: number) => void}> = ({onIma
             file: null
         },
         validate: (values: ImageDetails) => {
-            if(values.name === '') {
+            if (values.name === '') {
                 return {
                     name: 'Name is required'
                 }
             }
-            if(values.file == null) {
+            if (values.file == null) {
                 return {
                     file: 'File is required'
                 }
@@ -40,7 +43,7 @@ const ImagesForm: React.FC<{onImageUploaded: (image: number) => void}> = ({onIma
             setIsSubmitting(true);
             uploadImage(values)
                 .then((value) => {
-                    if(value) {
+                    if (value) {
                         formik.setFieldValue("imageId", value.id);
                         onImageUploaded(value.id);
                     }
@@ -81,7 +84,7 @@ const ImagesForm: React.FC<{onImageUploaded: (image: number) => void}> = ({onIma
                    className='form--input'
                    required={true}
                    type="file"
-                   onChange={(event) => handleFileSelected("file", event)} />
+                   onChange={(event) => handleFileSelected("file", event)}/>
             <Button className='form--input'
                     onClick={() => formik.submitForm()}
                     variant="contained"
@@ -90,8 +93,8 @@ const ImagesForm: React.FC<{onImageUploaded: (image: number) => void}> = ({onIma
             >
                 Upload
             </Button>
-            { formik.errors.name && <div>{formik.errors.name}</div> }
-            { formik.errors.file && <div>{formik.errors.file}</div> }
+            {formik.errors.name && <div>{formik.errors.name}</div>}
+            {formik.errors.file && <div>{formik.errors.file}</div>}
         </form>
     )
 };
@@ -102,14 +105,16 @@ interface ImageDetailsProps {
 }
 
 const ImageDetailsComponent: React.FC<ImageDetailsProps> = ({currentImageId, onCurrentImageIdChanged}) => {
-    const [currentImage, setCurrentImage] = useState<ImageResponse | null> ( null);
-    const [detectedTextResponse, setDetectedTextResponse] = useState<TextDetectionResponse | null> (null);
-    const [detectedLabelResponse, setDetectedLabelResponse] = useState<LabelDetectionResponse | null> (null);
-    const [numberFieldValue, setNumberFieldValue] = useState<number |null>(null);
+    const [currentImage, setCurrentImage] = useState<ImageResponse | null>(null);
+    const [detectedTextResponse, setDetectedTextResponse] = useState<TextDetectionResponse | null>(null);
+    const [detectedLabelResponse, setDetectedLabelResponse] = useState<LabelDetectionResponse | null>(null);
+    const [numberFieldValue, setNumberFieldValue] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isTextRecognitionLoading, setIsTextRecognitionLoading] = useState(false);
+    const [isLabelRecognitionLoading, setIsLabelRecognitionLoading] = useState(false);
 
     useEffect(() => {
-        if(currentImageId != null) {
+        if (currentImageId != null) {
             setIsLoading(true);
             getImageById(currentImageId)
                 .then(image => {
@@ -128,8 +133,9 @@ const ImageDetailsComponent: React.FC<ImageDetailsProps> = ({currentImageId, onC
         setNumberFieldValue(imageId);
     };
 
-    const handleChangeCurrentId = () => {
-        if(numberFieldValue != null) {
+    const handleChangeCurrentId = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        if (numberFieldValue != null) {
             onCurrentImageIdChanged(numberFieldValue);
             setIsLoading(true);
             getImageById(numberFieldValue)
@@ -141,27 +147,27 @@ const ImageDetailsComponent: React.FC<ImageDetailsProps> = ({currentImageId, onC
     };
 
     const handleTextRecognition = () => {
-        if(currentImage != null) {
-            setIsLoading(true);
+        if (currentImage != null) {
+            setIsTextRecognitionLoading(true);
             recognizeTextByImageName(currentImage.fileInfo.bucketName, currentImage.fileInfo.objectKey).then((res) => {
                 setDetectedTextResponse(res);
-                setIsLoading(false);
+                setIsTextRecognitionLoading(false);
             });
         }
     };
 
     const handleLabelRecognition = () => {
-        if(currentImage != null) {
-            setIsLoading(true);
+        if (currentImage != null) {
+            setIsLabelRecognitionLoading(true);
             recognizeLabel(currentImage.fileInfo.bucketName, currentImage.fileInfo.objectKey).then((res) => {
                 setDetectedLabelResponse(res);
-                setIsLoading(false);
+                setIsLabelRecognitionLoading(false);
             });
         }
     };
 
     const handleRemoveImage = () => {
-        if(currentImage != null) {
+        if (currentImage != null) {
             deleteImageById(currentImage.id).then((res) => onCurrentImageIdChanged(null));
         }
     };
@@ -184,6 +190,7 @@ const ImageDetailsComponent: React.FC<ImageDetailsProps> = ({currentImageId, onC
                 <Button className='image--search--element'
                         onClick={handleTextRecognition}
                         variant="contained"
+                        disabled={currentImage == null || currentImage.fileInfo == null || isTextRecognitionLoading}
                         color="primary"
                 >
                     Recognize text
@@ -191,13 +198,14 @@ const ImageDetailsComponent: React.FC<ImageDetailsProps> = ({currentImageId, onC
                 <Button className='image--search--element'
                         onClick={handleLabelRecognition}
                         variant="contained"
+                        disabled={currentImage == null || currentImage.fileInfo == null || isLabelRecognitionLoading}
                         color="primary"
                 >
                     Recognize labels
                 </Button>
                 <Button className='image--search--element'
                         onClick={handleRemoveImage}
-                        disabled={currentImage == null || currentImage.fileInfo == null}
+                        disabled={currentImage == null || currentImage.fileInfo == null || isLoading}
                         variant="contained"
                         color="secondary"
                 >
@@ -209,40 +217,66 @@ const ImageDetailsComponent: React.FC<ImageDetailsProps> = ({currentImageId, onC
                     isLoading ? (
                         <div>Fetching image...</div>
                     ) : (
-                        currentImage != null && currentImage.fileInfo != null? (
-                            <img className='image' src={getFileUrl(currentImage.fileInfo.bucketName, currentImage.fileInfo.objectKey)} alt='Resource not found :(' />
+                        currentImage != null && currentImage.fileInfo != null ? (
+                            <img className='image'
+                                 src={getFileUrl(currentImage.fileInfo.bucketName, currentImage.fileInfo.objectKey)}
+                                 alt='Resource not found :('/>
                         ) : (
                             <div>Please select image</div>
                         )
                     )
                 }
             </div>
-            <div><h3>Detected text:</h3></div>
-            <div className='image--detected--text'>
-                {
-                    detectedTextResponse ? (
-                        detectedTextResponse.map(textResponse => {
-                            return (<ul>
-                                <li>Detected Text: {textResponse.detectedText}</li>
-                                <li>Confidence: {textResponse.confidence}</li>
-                            </ul>)
-                        })
-                    ) : false
-                }
-            </div>
-            <div><h3>Detected labels:</h3></div>
-            <div className='image--detected--text'>
-                {
-                    detectedLabelResponse ? (
-                        detectedLabelResponse.map(labelResponse => {
-                            return (<ul>
-                                <li>Detected label: {labelResponse.name}</li>
-                                <li>Confidence: {labelResponse.confidence}</li>
-                            </ul>)
-                        })
-                    ) : false
-                }
-            </div>
+            {
+                isTextRecognitionLoading ? (
+                    <div>Detecting text...</div>
+                ) : (
+                    detectedTextResponse && (
+                        <React.Fragment>
+                            <div><h3>Detected text:</h3></div>
+                            <div className='image--detected--text'>
+                                {
+                                    detectedTextResponse ? (
+                                        detectedTextResponse.map((textResponse, index) => {
+                                            return (
+                                                <ul key={index}>
+                                                    <li>Detected Text: {textResponse.detectedText}</li>
+                                                    <li>Confidence: {textResponse.confidence}</li>
+                                                </ul>
+                                            )
+                                        })
+                                    ) : false
+                                }
+                            </div>
+                        </React.Fragment>
+                    )
+                )
+            }
+            {
+                isLabelRecognitionLoading ? (
+                    <div>Calculating labels...</div>
+                ) : (
+                    detectedLabelResponse && (
+                        <React.Fragment>
+                            <div><h3>Detected labels:</h3></div>
+                            <div className='image--detected--text'>
+                                {
+                                    detectedLabelResponse ? (
+                                        detectedLabelResponse.map((labelResponse, index) => {
+                                            return (
+                                                <ul key={index}>
+                                                    <li>Detected label: {labelResponse.name}</li>
+                                                    <li>Confidence: {labelResponse.confidence}</li>
+                                                </ul>
+                                            )
+                                        })
+                                    ) : false
+                                }
+                            </div>
+                        </React.Fragment>
+                    )
+                )
+            }
         </div>
     );
 };
@@ -256,7 +290,8 @@ export const ImagesComponent: React.FC<{}> = () => {
                 <ImagesForm onImageUploaded={image => setCurrentImageId(image)}/>
             </div>
             <div className='image--details'>
-                <ImageDetailsComponent currentImageId={currentImageId} onCurrentImageIdChanged={image => setCurrentImageId(image)}/>
+                <ImageDetailsComponent currentImageId={currentImageId}
+                                       onCurrentImageIdChanged={image => setCurrentImageId(image)}/>
             </div>
         </div>
     )

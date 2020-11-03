@@ -2,9 +2,7 @@ package org.pwr.domain.images;
 
 import org.pwr.domain.buckets.BucketServiceImpl;
 import org.pwr.domain.buckets.FileDetails;
-import org.pwr.domain.buckets.MultipartBody;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import java.time.LocalDateTime;
@@ -15,7 +13,7 @@ public class ImagesService {
     private final ImagesRepository imagesRepository;
     private final BucketServiceImpl bucketsService;
 
-    private static final String DEFAULT_BUCKET = "bitbeat1234567";
+    private static final String DEFAULT_BUCKET = "bitbeat-bucket";
 
     @Inject
     ImagesService(ImagesRepository imagesRepository, BucketServiceImpl bucketsService) {

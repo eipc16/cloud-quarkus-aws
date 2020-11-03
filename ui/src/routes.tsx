@@ -19,12 +19,6 @@ export var routes: AppRoute[] = [
         label: 'Images',
         icon: <PhotoLibraryIcon />,
         component: () => <ImagesComponent />
-    },
-    {
-        path: "/rekognition",
-        label: 'Rekognition',
-        icon: <ImageIcon />,
-        component: () => <div>Rekognition</div>
     }
 ];
 
