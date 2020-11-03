@@ -4,7 +4,7 @@ import {
     deleteImageById,
     getImageById,
     ImageDetails,
-    ImageResponse, recognizeLabel,
+    ImageResponse, LabelDetectionResponse, recognizeLabel,
     recognizeTextByImageName, TextDetectionResponse,
     uploadImage
 } from "./ImagesService";
@@ -104,6 +104,7 @@ interface ImageDetailsProps {
 const ImageDetailsComponent: React.FC<ImageDetailsProps> = ({currentImageId, onCurrentImageIdChanged}) => {
     const [currentImage, setCurrentImage] = useState<ImageResponse | null> ( null);
     const [detectedTextResponse, setDetectedTextResponse] = useState<TextDetectionResponse | null> (null);
+    const [detectedLabelResponse, setDetectedLabelResponse] = useState<LabelDetectionResponse | null> (null);
     const [numberFieldValue, setNumberFieldValue] = useState<number |null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -152,7 +153,8 @@ const ImageDetailsComponent: React.FC<ImageDetailsProps> = ({currentImageId, onC
     const handleLabelRecognition = () => {
         if(currentImage != null) {
             setIsLoading(true);
-            recognizeLabel().then((res) => {
+            recognizeLabel(currentImage.fileInfo.bucketName, currentImage.name).then((res) => {
+                setDetectedLabelResponse(res);
                 setIsLoading(false);
             });
         }
@@ -222,6 +224,18 @@ const ImageDetailsComponent: React.FC<ImageDetailsProps> = ({currentImageId, onC
                             return (<ul>
                                 <li>Detected Text: {textResponse.detectedText}</li>
                                 <li>Confidence: {textResponse.confidence}</li>
+                            </ul>)
+                        })
+                    ) : false
+                }
+            </div>
+            <div className='image--detected--text'>
+                {
+                    detectedLabelResponse ? (
+                        detectedLabelResponse.map(labelResponse => {
+                            return (<ul>
+                                <li>Detected Text: {labelResponse.name}</li>
+                                <li>Confidence: {labelResponse.confidence}</li>
                             </ul>)
                         })
                     ) : false

@@ -33,8 +33,6 @@ export interface TextDetectionResponse extends Array<TextDetection> {
 export interface LabelDetection {
     name: string;
     confidence: number;
-    instances: Array<any>;
-    parents: Array<any>;
 }
 
 export interface LabelDetectionResponse extends Array<LabelDetection> {
@@ -80,8 +78,8 @@ export async function recognizeTextByImageName(bucketName: string, imageName: st
         .then((response: AxiosResponse<TextDetectionResponse>) => response.data);
 }
 
-export async function recognizeLabel() {
-    return axios.get(`http://localhost:8080/rekognition`)
+export async function recognizeLabel(bucketName: string, imageName: string) {
+    return axios.get(`http://localhost:8080/buckets/${bucketName}/${imageName}/label`)
         .then((response: AxiosResponse<LabelDetectionResponse>) => response.data);
 }
 

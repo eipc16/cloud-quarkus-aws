@@ -15,7 +15,7 @@ public class ImagesService {
     private final ImagesRepository imagesRepository;
     private final BucketServiceImpl bucketsService;
 
-    private static final String DEFAULT_BUCKET = "bitbeat-bucket";
+    private static final String DEFAULT_BUCKET = "bitbeat1234567";
 
     @Inject
     ImagesService(ImagesRepository imagesRepository, BucketServiceImpl bucketsService) {
