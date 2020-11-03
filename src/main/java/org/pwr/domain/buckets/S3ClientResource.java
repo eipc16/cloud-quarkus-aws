@@ -12,6 +12,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,6 +59,36 @@ public class S3ClientResource {
         return bucketsService.getBucketFiles(bucketName).stream()
                 .map(FileObject::from)
                 .collect(Collectors.toList());
+    }
+
+    @GET
+    @Path("{bucketName}/{fileName}/text")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<TextDetectionDetail> detectText(@PathParam("bucketName") String bucketName, @PathParam("fileName") String fileName) {
+        RekognitionClient rekognitionClient = RekognitionClient.builder()
+                .region(Region.US_EAST_1)
+                .build();
+
+        DetectTextRequest request = DetectTextRequest.builder().image(
+                Image.builder().
+                        s3Object(S3Object.builder()
+                                .bucket(bucketName)
+                                .name(fileName)
+                                .build())
+                        .build())
+                .build();
+
+        DetectTextResponse result = rekognitionClient.detectText(request);
+
+        List<TextDetection> textDetections = result.textDetections();
+        List<TextDetectionDetail> textDetectionDetails = new ArrayList<>();
+        for (TextDetection text : textDetections) {
+            if(text.parentId() == null) {
+                textDetectionDetails.add(new TextDetectionDetail(text));
+            }
+        }
+
+        return textDetectionDetails;
     }
 
     @GET
