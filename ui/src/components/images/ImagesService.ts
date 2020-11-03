@@ -20,6 +20,26 @@ export interface ImageResponse {
     fileInfo: FileDetails;
 }
 
+export interface TextDetection {
+    confidence: number;
+    detectedText: string;
+    id: number;
+    type: string;
+}
+
+export interface TextDetectionResponse extends Array<TextDetection> {
+}
+
+export interface LabelDetection {
+    name: string;
+    confidence: number;
+    instances: Array<any>;
+    parents: Array<any>;
+}
+
+export interface LabelDetectionResponse extends Array<LabelDetection> {
+}
+
 export async function uploadImage(image: ImageDetails) {
     const file = image.file;
     if (file == null)
@@ -53,6 +73,16 @@ export async function uploadImage(image: ImageDetails) {
 export function getImageById(imageId: number) {
     return axios.get(`http://localhost:8080/images/${imageId}`)
         .then((response: AxiosResponse<ImageResponse>) => response.data);
+}
+
+export async function recognizeTextByImageName(bucketName: string, imageName: string) {
+    return axios.get(`http://localhost:8080/buckets/${bucketName}/${imageName}/text`)
+        .then((response: AxiosResponse<TextDetectionResponse>) => response.data);
+}
+
+export async function recognizeLabel() {
+    return axios.get(`http://localhost:8080/rekognition`)
+        .then((response: AxiosResponse<LabelDetectionResponse>) => response.data);
 }
 
 export function deleteImageById(imageId: number) {

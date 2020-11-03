@@ -1,6 +1,13 @@
 import React, {useEffect, useState} from "react";
 import {useFormik} from 'formik';
-import {deleteImageById, getImageById, ImageDetails, ImageResponse, uploadImage} from "./ImagesService";
+import {
+    deleteImageById,
+    getImageById,
+    ImageDetails,
+    ImageResponse, recognizeLabel,
+    recognizeTextByImageName, TextDetectionResponse,
+    uploadImage
+} from "./ImagesService";
 import TextField from "@material-ui/core/TextField";
 import Button from '@material-ui/core/Button'
 
@@ -96,6 +103,7 @@ interface ImageDetailsProps {
 
 const ImageDetailsComponent: React.FC<ImageDetailsProps> = ({currentImageId, onCurrentImageIdChanged}) => {
     const [currentImage, setCurrentImage] = useState<ImageResponse | null> ( null);
+    const [detectedTextResponse, setDetectedTextResponse] = useState<TextDetectionResponse | null> (null);
     const [numberFieldValue, setNumberFieldValue] = useState<number |null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -131,6 +139,25 @@ const ImageDetailsComponent: React.FC<ImageDetailsProps> = ({currentImageId, onC
         }
     };
 
+    const handleTextRecognition = () => {
+        if(currentImage != null) {
+            setIsLoading(true);
+            recognizeTextByImageName(currentImage.fileInfo.bucketName, currentImage.name).then((res) => {
+                setDetectedTextResponse(res);
+                setIsLoading(false);
+            });
+        }
+    };
+
+    const handleLabelRecognition = () => {
+        if(currentImage != null) {
+            setIsLoading(true);
+            recognizeLabel().then((res) => {
+                setIsLoading(false);
+            });
+        }
+    };
+
     const handleRemoveImage = () => {
         if(currentImage != null) {
             deleteImageById(currentImage.id).then((res) => onCurrentImageIdChanged(null));
@@ -153,6 +180,20 @@ const ImageDetailsComponent: React.FC<ImageDetailsProps> = ({currentImageId, onC
                     Show Image
                 </Button>
                 <Button className='image--search--element'
+                        onClick={handleTextRecognition}
+                        variant="contained"
+                        color="primary"
+                >
+                    Recognize text
+                </Button>
+                <Button className='image--search--element'
+                        onClick={handleLabelRecognition}
+                        variant="contained"
+                        color="primary"
+                >
+                    Recognize labels
+                </Button>
+                <Button className='image--search--element'
                         onClick={handleRemoveImage}
                         disabled={currentImage == null || currentImage.fileInfo == null}
                         variant="contained"
@@ -172,6 +213,18 @@ const ImageDetailsComponent: React.FC<ImageDetailsProps> = ({currentImageId, onC
                             <div>Please select image</div>
                         )
                     )
+                }
+            </div>
+            <div className='image--detected--text'>
+                {
+                    detectedTextResponse ? (
+                        detectedTextResponse.map(textResponse => {
+                            return (<ul>
+                                <li>Detected Text: {textResponse.detectedText}</li>
+                                <li>Confidence: {textResponse.confidence}</li>
+                            </ul>)
+                        })
+                    ) : false
                 }
             </div>
         </div>
