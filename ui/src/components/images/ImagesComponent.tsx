@@ -261,7 +261,7 @@ const ImageDetailsComponent: React.FC<ImageDetailsProps> = ({currentImageId, onC
                     ) : false
                 }
             </div>
-            <div><h3>Probability of contains face:</h3></div>
+            <div><h3>Probability of containing face:</h3></div>
             <div className='image--detected--text'>
                 {
                     detectedFacesResponse ? (
