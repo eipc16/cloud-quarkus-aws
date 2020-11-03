@@ -143,7 +143,7 @@ const ImageDetailsComponent: React.FC<ImageDetailsProps> = ({currentImageId, onC
     const handleTextRecognition = () => {
         if(currentImage != null) {
             setIsLoading(true);
-            recognizeTextByImageName(currentImage.fileInfo.bucketName, currentImage.name).then((res) => {
+            recognizeTextByImageName(currentImage.fileInfo.bucketName, currentImage.fileInfo.objectKey).then((res) => {
                 setDetectedTextResponse(res);
                 setIsLoading(false);
             });
@@ -153,7 +153,7 @@ const ImageDetailsComponent: React.FC<ImageDetailsProps> = ({currentImageId, onC
     const handleLabelRecognition = () => {
         if(currentImage != null) {
             setIsLoading(true);
-            recognizeLabel(currentImage.fileInfo.bucketName, currentImage.name).then((res) => {
+            recognizeLabel(currentImage.fileInfo.bucketName, currentImage.fileInfo.objectKey).then((res) => {
                 setDetectedLabelResponse(res);
                 setIsLoading(false);
             });
@@ -217,6 +217,7 @@ const ImageDetailsComponent: React.FC<ImageDetailsProps> = ({currentImageId, onC
                     )
                 }
             </div>
+            <div><h3>Detected text:</h3></div>
             <div className='image--detected--text'>
                 {
                     detectedTextResponse ? (
@@ -229,12 +230,13 @@ const ImageDetailsComponent: React.FC<ImageDetailsProps> = ({currentImageId, onC
                     ) : false
                 }
             </div>
+            <div><h3>Detected labels:</h3></div>
             <div className='image--detected--text'>
                 {
                     detectedLabelResponse ? (
                         detectedLabelResponse.map(labelResponse => {
                             return (<ul>
-                                <li>Detected Text: {labelResponse.name}</li>
+                                <li>Detected label: {labelResponse.name}</li>
                                 <li>Confidence: {labelResponse.confidence}</li>
                             </ul>)
                         })
