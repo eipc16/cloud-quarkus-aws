@@ -92,20 +92,26 @@ public class S3ClientResource {
     }
 
     @GET
-    @Path("rekognition")
+    @Path("{bucketName}/{fileName}/label")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Label> getRekognition() {
+    public List<LabelDetail> getRekognition(@PathParam("bucketName") String bucketName, @PathParam("fileName") String fileName) {
         RekognitionClient client = RekognitionClient.builder()
                 .region(Region.US_EAST_1)
                 .build();
         DetectLabelsResponse detectLabelsResponse = client.detectLabels(DetectLabelsRequest.builder()
                 .image(Image.builder()
                         .s3Object(S3Object.builder()
-                                .bucket("bitbeat-bucket")
-                                .name("sqL_inj_accu.png")
+                                .bucket(bucketName)
+                                .name(fileName)
                                 .build())
                         .build())
                 .build());
-        return detectLabelsResponse.labels();
+
+        List<Label> labelsDetections = detectLabelsResponse.labels();
+        List<LabelDetail> labelsDetails = new ArrayList<>();
+        for (Label label : labelsDetections) {
+            labelsDetails.add(new LabelDetail(label));
+        }
+        return labelsDetails;
     }
 }
