@@ -1,32 +1,19 @@
 package org.pwr.domain.buckets;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Random;
-import java.util.stream.Collectors;
+import org.jboss.resteasy.annotations.jaxrs.PathParam;
+import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.rekognition.RekognitionClient;
+import software.amazon.awssdk.services.rekognition.model.*;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.StreamingOutput;
-
-import org.jboss.resteasy.annotations.jaxrs.PathParam;
-
-import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.core.sync.ResponseTransformer;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectResponse;
-import software.amazon.awssdk.services.s3.model.S3Object;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Path("/buckets")
 public class S3ClientResource {
@@ -71,5 +58,23 @@ public class S3ClientResource {
         return bucketsService.getBucketFiles(bucketName).stream()
                 .map(FileObject::from)
                 .collect(Collectors.toList());
+    }
+
+    @GET
+    @Path("rekognition")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Label> getRekognition() {
+        RekognitionClient client = RekognitionClient.builder()
+                .region(Region.US_EAST_1)
+                .build();
+        DetectLabelsResponse detectLabelsResponse = client.detectLabels(DetectLabelsRequest.builder()
+                .image(Image.builder()
+                        .s3Object(S3Object.builder()
+                                .bucket("bitbeat-bucket")
+                                .name("sqL_inj_accu.png")
+                                .build())
+                        .build())
+                .build());
+        return detectLabelsResponse.labels();
     }
 }

@@ -2,10 +2,10 @@ package org.pwr.domain.buckets;
 
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import java.io.ByteArrayOutputStream;
@@ -21,8 +21,8 @@ public class BucketServiceImpl implements BucketsService {
     private final S3ResourceHelper s3ResourceHelper;
 
     @Inject
-    BucketServiceImpl(S3Client s3Client, S3ResourceHelper s3ResourceHelper) {
-        this.s3Client = s3Client;
+    BucketServiceImpl(S3ResourceHelper s3ResourceHelper) {
+        this.s3Client = S3Client.builder().region(Region.US_EAST_1).build();
         this.s3ResourceHelper = s3ResourceHelper;
     }
 

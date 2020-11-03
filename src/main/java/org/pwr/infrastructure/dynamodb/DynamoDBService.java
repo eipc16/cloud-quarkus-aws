@@ -2,6 +2,7 @@ package org.pwr.infrastructure.dynamodb;
 
 import org.jboss.logging.Logger;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
 import software.amazon.awssdk.services.dynamodb.waiters.DynamoDbWaiter;
@@ -22,8 +23,8 @@ public class DynamoDBService {
     private static DynamoDbWaiter dynamoDbWaiter;
 
     @Inject
-    public DynamoDBService(DynamoDbClient dynamoDbClient, DynamoDBObjectMapper objectMapper) {
-        this.dynamoDbClient = dynamoDbClient;
+    public DynamoDBService(DynamoDBObjectMapper objectMapper) {
+        this.dynamoDbClient = DynamoDbClient.builder().region(Region.US_EAST_1).build();
         dynamoDbWaiter = dynamoDbClient.waiter();
         this.objectMapper = objectMapper;
     }
