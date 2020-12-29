@@ -7,11 +7,11 @@
 #
 # Then, build the image with:
 #
-# docker build -f src/main/docker/Dockerfile.native -t quarkus/cloud-quarkus-aws .
+# docker build -f src/main/docker/Dockerfile.native -t quarkus/document-management-core .
 #
 # Then run the container using:
 #
-# docker run -i --rm -p 8080:8080 quarkus/cloud-quarkus-aws
+# docker run -i --rm -p 8080:8080 quarkus/document-management-core
 #
 ###
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.1
