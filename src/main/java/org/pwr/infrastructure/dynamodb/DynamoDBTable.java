@@ -15,4 +15,6 @@ public @interface DynamoDBTable {
     long writeCapacity() default 5L;
 
     boolean forceRebuild() default false;
+
+    boolean singleRecordTable() default false;
 }

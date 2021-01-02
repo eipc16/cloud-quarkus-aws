@@ -10,8 +10,11 @@ import software.amazon.awssdk.services.dynamodb.waiters.DynamoDbWaiter;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import java.text.MessageFormat;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Dependent
 public class DynamoDBService {
@@ -89,7 +92,14 @@ public class DynamoDBService {
             throw new IllegalStateException(MessageFormat.format(
                     "Cannot save {0} entity because it does not belong to any DynamoDBTable", object.getClass().getSimpleName()));
         }
-        String tableName = object.getClass().getAnnotation(DynamoDBTable.class).name();
+        DynamoDBTable tableAnnotation = object.getClass().getAnnotation(DynamoDBTable.class);
+        String tableName = tableAnnotation.name();
+//        TODO: Find a better way for handling single record tables
+//        if(tableAnnotation.singleRecordTable()) {
+//            deleteTable(tableName);
+//            TableDefinition definition = DynamoDBTableProcessor.getTableDefinition(clazz, tableAnnotation);
+//            createTable(definition);
+//        }
         Map<String, AttributeValue> values = objectMapper.mapEntityToValuesByNames(object);
         PutItemRequest request = createPutItemRequest(tableName, values);
         saveEntity(request);
@@ -119,6 +129,32 @@ public class DynamoDBService {
             LOGGER.errorf("Could not save entity to table: %s. Exception: %s", putItemRequest.tableName(), ex.getMessage());
         }
         return false;
+    }
+
+    public <T> List<T> listEntities(Class<T> targetClass) {
+        if (!isDynamoEntity(targetClass)) {
+            throw new IllegalStateException(MessageFormat.format(
+                    "Cannot fetch {0} entity because it does not belong to any DynamoDBTable", targetClass.getSimpleName()));
+        }
+        String tableName = targetClass.getAnnotation(DynamoDBTable.class).name();
+        return listEntities(targetClass, createScanRequest(tableName));
+    }
+
+    private ScanRequest createScanRequest(String tableName) {
+        return ScanRequest.builder()
+                .tableName(tableName)
+                .build();
+    }
+
+    private <T> List<T> listEntities(Class<T> targetClass, ScanRequest request) {
+        try {
+            ScanResponse response = dynamoDbClient.scan(request);
+            return response.items().stream()
+                    .map(item -> objectMapper.mapToEntity(targetClass, item))
+                    .collect(Collectors.toUnmodifiableList());
+        } catch (ResourceNotFoundException ex) {
+            return Collections.emptyList();
+        }
     }
 
     public <T> Optional<T> getEntity(Class<T> targetClass, Map<String, AttributeValue> keys) {

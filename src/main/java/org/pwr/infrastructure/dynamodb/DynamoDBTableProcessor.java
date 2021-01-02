@@ -47,7 +47,7 @@ class DynamoDBTableProcessor {
         }
     }
 
-    private static TableDefinition getTableDefinition(Class<?> clazz, DynamoDBTable tableAnnotation) {
+    public static TableDefinition getTableDefinition(Class<?> clazz, DynamoDBTable tableAnnotation) {
         return TableDefinition.builder(tableAnnotation.name())
                 .withKeys(getKeys(clazz))
                 .withAttributes(getAttributes(clazz))

@@ -136,7 +136,7 @@ public class DynamoDBObjectMapper {
                     .forEach(field -> setFieldValue(target, field, attributeValueMap.get(field.getName())));
             return target;
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new IllegalStateException(MessageFormat.format("Could not create instance of class: {0}", targetClass.getSimpleName()));
+            throw new IllegalStateException(MessageFormat.format("Could not create instance of class: {0}. Error: {1}", targetClass.getSimpleName(), e.getMessage()));
         }
     }
 

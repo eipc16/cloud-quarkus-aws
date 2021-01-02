@@ -162,7 +162,7 @@
         </plugins>
     </build>
 
-<!--    <profiles>-->
+    <profiles>
 <!--        <profile>-->
 <!--            <id>prod</id>-->
 <!--            <build>-->
