@@ -1,11 +1,14 @@
 package org.pwr.infrastructure.exceptions;
 
-public abstract class AWSException extends RuntimeException {
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+
+public abstract class AWSException extends WebApplicationException {
 
     private static String relatedService;
 
     AWSException(Throwable throwable, String serviceName) {
-        super(throwable.getMessage(), throwable);
+        super(throwable.getMessage(), throwable, Response.Status.INTERNAL_SERVER_ERROR);
         relatedService = serviceName;
     }
 

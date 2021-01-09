@@ -39,10 +39,15 @@ public abstract class LambdaFunction<I, O> {
         return objectMapper;
     }
 
-    public @Nullable O apply(I payload) {
+    protected I preprocessInput(I input) {
+        return input;
+    }
+
+    public @Nullable
+    O apply(I payload) {
         O response = null;
         try {
-            InvokeRequest request = getInvokeRequest(payload);
+            InvokeRequest request = getInvokeRequest(preprocessInput(payload));
             response = handleResponse(lambdaClient.invoke(request));
         } catch (JsonProcessingException ex) {
             LOGGER.error(ex.getMessage(), ex);

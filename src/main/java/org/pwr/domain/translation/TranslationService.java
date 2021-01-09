@@ -1,9 +1,9 @@
 package org.pwr.domain.translation;
 
+import org.pwr.domain.settings.SettingsService;
 import org.pwr.domain.translation.translate.TranslateLambdaFunction;
 import org.pwr.domain.translation.translate.TranslateRequest;
 import org.pwr.domain.translation.translate.TranslateResponse;
-import org.pwr.infrastructure.config.TesseractConfiguration;
 import org.pwr.infrastructure.exceptions.TesseractFunctionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 
 @Transactional
 @Dependent
@@ -19,22 +20,27 @@ public class TranslationService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TranslationService.class);
 
     private TranslateLambdaFunction translateLambdaFunction;
-    private TesseractConfiguration configuration;
+    private SettingsService settingsService;
 
     @Inject
-    public TranslationService(TranslateLambdaFunction translateLambdaFunction, TesseractConfiguration configuration) {
+    public TranslationService(TranslateLambdaFunction translateLambdaFunction, SettingsService settingsService) {
         this.translateLambdaFunction = translateLambdaFunction;
-        this.configuration = configuration;
+        this.settingsService = settingsService;
     }
 
     public TranslationResult performTranslation(TranslateRequest request) {
         TranslationResult response;
         try {
             TranslateResponse translateResponse = translateLambdaFunction.apply(request);
-            response = buildSuccessfulResult(translateResponse);
+            double confidenceTreshold = settingsService.getSettings().getTranslateInsufficientConfidenceThreshold();
+            if (translateResponse.getConfidence() < confidenceTreshold) {
+                response = buildInsufficientConfidenceResult(translateResponse, LocalDateTime.now());
+            } else {
+                response = buildSuccessfulResult(translateResponse, LocalDateTime.now());
+            }
         } catch (TesseractFunctionException ex) {
             LOGGER.warn(ex.getMessage(), ex);
-            response = buildFailureResult();
+            response = buildFailureResult(LocalDateTime.now());
         }
 
         if (response == null) {
@@ -44,14 +50,24 @@ public class TranslationService {
         return response;
     }
 
-    private TranslationResult buildFailureResult() {
+    private TranslationResult buildFailureResult(LocalDateTime processedAt) {
         return TranslationResult.builder(TranslationResult.ResultType.FAILURE)
+                .withTranslatedAt(processedAt)
                 .build();
     }
 
-    private TranslationResult buildSuccessfulResult(TranslateResponse response) {
+    private TranslationResult buildInsufficientConfidenceResult(TranslateResponse response, LocalDateTime processedAt) {
+        return TranslationResult.builder(TranslationResult.ResultType.INSUFFICIENT_CONFIDENCE)
+                .withTranslatedAt(processedAt)
+                .withConfidence(response.getConfidence())
+                .build();
+    }
+
+    private TranslationResult buildSuccessfulResult(TranslateResponse response, LocalDateTime processedAt) {
         return TranslationResult.builder(TranslationResult.ResultType.SUCCESS)
                 .withTranslatedText(response.getResult())
+                .withTranslatedAt(processedAt)
+                .withConfidence(response.getConfidence())
                 .withSourceLanguage(response.getSourceLanguage())
                 .withTargetLanguage(response.getTargetLanguage())
                 .build();

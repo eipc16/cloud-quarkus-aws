@@ -5,7 +5,7 @@ import org.pwr.infrastructure.dynamodb.DynamoDBTable;
 import javax.persistence.Id;
 import java.util.Optional;
 
-@DynamoDBTable(name = "settings")
+@DynamoDBTable(value = "settings")
 public class SettingsDynamoEntity {
 
     private static final double DEFAULT_INSUFFICIENT_CONFIDENCE_THRESHOLD = 0.90;
@@ -15,6 +15,8 @@ public class SettingsDynamoEntity {
 
     private Double ocrInsufficientConfidenceThreshold;
 
+    private Double translateInsufficientConfidenceThreshold;
+
     public SettingsDynamoEntity() {
         // empty for deserialization
     }
@@ -22,10 +24,16 @@ public class SettingsDynamoEntity {
     private SettingsDynamoEntity(Builder builder) {
         this.ocrInsufficientConfidenceThreshold = Optional.ofNullable(builder.ocrInsufficientConfidenceThreshold)
                 .orElse(DEFAULT_INSUFFICIENT_CONFIDENCE_THRESHOLD);
+        this.translateInsufficientConfidenceThreshold = Optional.ofNullable(builder.translateInsufficientConfidenceThreshold)
+                .orElse(DEFAULT_INSUFFICIENT_CONFIDENCE_THRESHOLD);
     }
 
     public double getOcrInsufficientConfidenceThreshold() {
         return ocrInsufficientConfidenceThreshold;
+    }
+
+    public double getTranslateInsufficientConfidenceThreshold() {
+        return translateInsufficientConfidenceThreshold;
     }
 
     public static Builder builder() {
@@ -37,7 +45,8 @@ public class SettingsDynamoEntity {
     }
 
     public static class Builder {
-        private double ocrInsufficientConfidenceThreshold;
+        private Double ocrInsufficientConfidenceThreshold;
+        private Double translateInsufficientConfidenceThreshold;
 
         private Builder() {
 
@@ -45,10 +54,16 @@ public class SettingsDynamoEntity {
 
         private Builder(SettingsDynamoEntity settingsDynamoEntity) {
             ocrInsufficientConfidenceThreshold = settingsDynamoEntity.ocrInsufficientConfidenceThreshold;
+            translateInsufficientConfidenceThreshold = settingsDynamoEntity.translateInsufficientConfidenceThreshold;
         }
 
         public Builder withOCRInsufficientConfidenceThreshold(double ocrInsufficientConfidenceThreshold) {
             this.ocrInsufficientConfidenceThreshold = ocrInsufficientConfidenceThreshold;
+            return this;
+        }
+
+        public Builder withTranslateInsufficientConfidenceThreshold(double translateInsufficientConfidenceThreshold) {
+            this.translateInsufficientConfidenceThreshold = translateInsufficientConfidenceThreshold;
             return this;
         }
 

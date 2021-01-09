@@ -1,5 +1,6 @@
 package org.pwr.domain.ocr;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public class TextRecognitionResult {
@@ -7,11 +8,13 @@ public class TextRecognitionResult {
     private final double confidence;
     private final ResultType resultType;
     private final String result;
+    private final LocalDateTime ocrProcessedAt;
 
     private TextRecognitionResult(Builder builder) {
-        this.confidence = builder.confidence;
+        this.confidence = Optional.ofNullable(builder.confidence).orElse(0D);
         this.resultType = builder.resultType;
         this.result = builder.result;
+        this.ocrProcessedAt = builder.ocrProcessedAt;
     }
 
     public double getConfidence() {
@@ -26,26 +29,36 @@ public class TextRecognitionResult {
         return Optional.ofNullable(result);
     }
 
+    public Optional<LocalDateTime> getOCRProcessedAt() {
+        return Optional.ofNullable(ocrProcessedAt);
+    }
+
     public static Builder builder(ResultType resultType) {
         return new Builder(resultType);
     }
 
     public static class Builder {
-        private double confidence;
+        private Double confidence;
         private ResultType resultType;
         private String result;
+        private LocalDateTime ocrProcessedAt;
 
         private Builder(ResultType resultType) {
             this.resultType = resultType;
         }
 
-        public Builder withConfidence(double confidence) {
+        public Builder withConfidence(Double confidence) {
             this.confidence = confidence;
             return this;
         }
 
         public Builder withResult(String result) {
             this.result = result;
+            return this;
+        }
+
+        public Builder withOCRProcessedAt(LocalDateTime ocrProcessedAt) {
+            this.ocrProcessedAt = ocrProcessedAt;
             return this;
         }
 
@@ -56,7 +69,9 @@ public class TextRecognitionResult {
 
     public enum ResultType {
         SUCCESS,
+        MANUAL,
         FAILURE,
-        INSUFFICIENT_CONFIDENCE
+        INSUFFICIENT_CONFIDENCE,
+        NOT_STARTED
     }
 }

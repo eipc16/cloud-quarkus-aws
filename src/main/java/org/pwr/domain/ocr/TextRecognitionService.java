@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 
 @Transactional
 @Dependent
@@ -33,13 +34,13 @@ public class TextRecognitionService {
             TesseractResponse tesseractResponse = tesseractLambdaFunction.apply(document);
             double confidenceThreshold = settingsService.getSettings().getOcrInsufficientConfidenceThreshold();
             if(tesseractResponse.getConfidence() < confidenceThreshold) {
-                response = buildInsufficientConfidenceResult(tesseractResponse);
+                response = buildInsufficientConfidenceResult(tesseractResponse, LocalDateTime.now());
             } else {
-                response = buildSuccessfulResult(tesseractResponse);
+                response = buildSuccessfulResult(tesseractResponse, LocalDateTime.now());
             }
         } catch (TesseractFunctionException ex) {
             LOGGER.warn(ex.getMessage(), ex);
-            response = buildFailureResult();
+            response = buildFailureResult(LocalDateTime.now());
         }
 
         if (response == null) {
@@ -49,20 +50,23 @@ public class TextRecognitionService {
         return response;
     }
 
-    private TextRecognitionResult buildFailureResult() {
+    private TextRecognitionResult buildFailureResult(LocalDateTime processedAt) {
         return TextRecognitionResult.builder(TextRecognitionResult.ResultType.FAILURE)
+                .withOCRProcessedAt(processedAt)
                 .build();
     }
 
-    private TextRecognitionResult buildInsufficientConfidenceResult(TesseractResponse response) {
+    private TextRecognitionResult buildInsufficientConfidenceResult(TesseractResponse response, LocalDateTime processedAt) {
         return TextRecognitionResult.builder(TextRecognitionResult.ResultType.INSUFFICIENT_CONFIDENCE)
+                .withOCRProcessedAt(processedAt)
                 .withConfidence(response.getConfidence())
                 .build();
     }
 
-    private TextRecognitionResult buildSuccessfulResult(TesseractResponse response) {
+    private TextRecognitionResult buildSuccessfulResult(TesseractResponse response, LocalDateTime processedAt) {
         return TextRecognitionResult.builder(TextRecognitionResult.ResultType.SUCCESS)
                 .withConfidence(response.getConfidence())
+                .withOCRProcessedAt(processedAt)
                 .withResult(response.getResult())
                 .build();
     }

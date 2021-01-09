@@ -4,8 +4,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class TranslateResponse {
 
-    @JsonProperty("text")
+    @JsonProperty("result")
     private String text;
+
+    @JsonProperty("confidence")
+    private double confidence;
 
     @JsonProperty("sourceLang")
     private String sourceLang;
@@ -19,6 +22,10 @@ public class TranslateResponse {
 
     public String getResult() {
         return text;
+    }
+
+    public double getConfidence() {
+        return confidence;
     }
 
     public String getSourceLanguage() {

@@ -1,11 +1,11 @@
 package org.pwr.infrastructure.dynamodb;
 
 import eu.infomas.annotation.AnnotationDetector;
+import io.quarkus.runtime.Startup;
 import io.quarkus.runtime.StartupEvent;
 import org.jboss.logging.Logger;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
-import javax.ejb.Startup;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
@@ -48,7 +48,7 @@ class DynamoDBTableProcessor {
     }
 
     public static TableDefinition getTableDefinition(Class<?> clazz, DynamoDBTable tableAnnotation) {
-        return TableDefinition.builder(tableAnnotation.name())
+        return TableDefinition.builder(tableAnnotation.value())
                 .withKeys(getKeys(clazz))
                 .withAttributes(getAttributes(clazz))
                 .withTroughput(ProvisionedThroughput.builder()

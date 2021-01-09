@@ -8,6 +8,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.persistence.GeneratedValue;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.text.MessageFormat;
 import java.util.*;
@@ -24,6 +25,7 @@ public class DynamoDBObjectMapper {
 
     Map<String, AttributeValue> mapEntityToValuesByNames(Object object) {
         return Arrays.stream(object.getClass().getDeclaredFields())
+                .filter(field -> !Modifier.isStatic(field.getModifiers()))
                 .collect(Collectors.toMap(Field::getName, field -> mapToAttributeValue(object, field)));
     }
 
@@ -132,6 +134,7 @@ public class DynamoDBObjectMapper {
         try {
             T target = targetClass.getConstructor().newInstance();
             Arrays.stream(targetClass.getDeclaredFields())
+                    .filter(field -> !Modifier.isStatic(field.getModifiers()))
                     .filter(field -> attributeValueMap.containsKey(field.getName()))
                     .forEach(field -> setFieldValue(target, field, attributeValueMap.get(field.getName())));
             return target;

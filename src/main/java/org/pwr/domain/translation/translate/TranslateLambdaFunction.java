@@ -33,6 +33,21 @@ public class TranslateLambdaFunction extends LambdaFunction<TranslateRequest, Tr
     }
 
     @Override
+    protected TranslateRequest preprocessInput(TranslateRequest translateRequest) {
+        TranslateRequest.Builder builder = TranslateRequest.builder(translateRequest);
+
+        if(translateRequest.getSourceLanguage() == null) {
+            builder.withSourceLanguage(configuration.getDefaultSourceLanguage());
+        }
+
+        if(translateRequest.getTargetLanguage() == null) {
+            builder.withTargetLanguage(configuration.getDefaultTargetLanguage());
+        }
+
+        return builder.build();
+    }
+
+    @Override
     protected TranslateResponse handleResponse(InvokeResponse invokeResponse) throws JsonProcessingException {
         if (!HttpStatusFamily.of(invokeResponse.statusCode()).equals(HttpStatusFamily.SUCCESSFUL)) {
             throw new TesseractFunctionException(invokeResponse.functionError(), invokeResponse.logResult(), invokeResponse.statusCode());

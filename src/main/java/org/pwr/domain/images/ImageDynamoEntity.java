@@ -11,7 +11,7 @@ import javax.persistence.Id;
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
 
-@DynamoDBTable(name = "images")
+@DynamoDBTable(value = "images")
 public class ImageDynamoEntity {
 
     @Id

@@ -1,5 +1,7 @@
 package org.pwr.domain.settings;
 
+import org.pwr.infrastructure.config.TesseractConfiguration;
+import org.pwr.infrastructure.config.TranslateConfiguration;
 import org.pwr.infrastructure.dynamodb.DynamoDBService;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -11,21 +13,36 @@ import java.util.Map;
 class SettingsRepository {
 
     private final DynamoDBService dynamoDBService;
+    private final TesseractConfiguration tesseractConfiguration;
+    private final TranslateConfiguration translateConfiguration;
 
     @Inject
-    SettingsRepository(DynamoDBService dynamoDBService) {
+    SettingsRepository(DynamoDBService dynamoDBService,
+                       TesseractConfiguration tesseractConfiguration,
+                       TranslateConfiguration translateConfiguration) {
         this.dynamoDBService = dynamoDBService;
+        this.tesseractConfiguration = tesseractConfiguration;
+        this.translateConfiguration = translateConfiguration;
     }
 
     public SettingsEntity getSettings() {
         return dynamoDBService.getEntity(SettingsDynamoEntity.class, Map.of("id", AttributeValue.builder().n("0").build()))
                 .map(this::mapToEntity)
-                .orElseThrow(() -> new RuntimeException("Settings not found"));
+                .orElseGet(this::createDefaultSettings);
+    }
+
+    private SettingsEntity createDefaultSettings() {
+        SettingsEntity defaultSettings = SettingsEntity.builder()
+                .withOCRInsufficientConfidenceThreshold(tesseractConfiguration.getDefaultThreshold())
+                .withTranslateInsufficientConfidenceThreshold(translateConfiguration.getDefaultThreshold())
+                .build();
+        return save(defaultSettings);
     }
 
     private SettingsEntity mapToEntity(SettingsDynamoEntity settingsDynamoEntity) {
         return SettingsEntity.builder()
                 .withOCRInsufficientConfidenceThreshold(settingsDynamoEntity.getOcrInsufficientConfidenceThreshold())
+                .withTranslateInsufficientConfidenceThreshold(settingsDynamoEntity.getTranslateInsufficientConfidenceThreshold())
                 .build();
     }
 
@@ -38,6 +55,7 @@ class SettingsRepository {
     private SettingsDynamoEntity mapToDynamoEntity(SettingsEntity settingsEntity) {
         return SettingsDynamoEntity.builder()
                 .withOCRInsufficientConfidenceThreshold(settingsEntity.getOcrInsufficientConfidenceThreshold())
+                .withTranslateInsufficientConfidenceThreshold(settingsEntity.getTranslateInsufficientConfidenceThreshold())
                 .build();
     }
 }

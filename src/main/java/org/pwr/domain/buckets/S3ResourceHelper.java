@@ -7,6 +7,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Date;
 import java.util.UUID;
 
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -50,5 +51,12 @@ public class S3ResourceHelper {
         }
 
         return tempPath;
+    }
+
+    DeleteObjectRequest buildDeleteRequest(String bucketName, String objectKey) {
+        return DeleteObjectRequest.builder()
+                .bucket(bucketName)
+                .key(objectKey)
+                .build();
     }
 }

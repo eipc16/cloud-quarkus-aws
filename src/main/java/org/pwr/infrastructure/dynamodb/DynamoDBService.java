@@ -2,6 +2,7 @@ package org.pwr.infrastructure.dynamodb;
 
 import org.jboss.logging.Logger;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
@@ -10,13 +11,11 @@ import software.amazon.awssdk.services.dynamodb.waiters.DynamoDbWaiter;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import java.text.MessageFormat;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Dependent
+// TODO: Move to enhanced client to avoid manual mapping, switch converters
 public class DynamoDBService {
 
     private static final Logger LOGGER = Logger.getLogger(DynamoDBService.class);
@@ -93,7 +92,7 @@ public class DynamoDBService {
                     "Cannot save {0} entity because it does not belong to any DynamoDBTable", object.getClass().getSimpleName()));
         }
         DynamoDBTable tableAnnotation = object.getClass().getAnnotation(DynamoDBTable.class);
-        String tableName = tableAnnotation.name();
+        String tableName = tableAnnotation.value();
 //        TODO: Find a better way for handling single record tables
 //        if(tableAnnotation.singleRecordTable()) {
 //            deleteTable(tableName);
@@ -136,7 +135,7 @@ public class DynamoDBService {
             throw new IllegalStateException(MessageFormat.format(
                     "Cannot fetch {0} entity because it does not belong to any DynamoDBTable", targetClass.getSimpleName()));
         }
-        String tableName = targetClass.getAnnotation(DynamoDBTable.class).name();
+        String tableName = targetClass.getAnnotation(DynamoDBTable.class).value();
         return listEntities(targetClass, createScanRequest(tableName));
     }
 
@@ -162,7 +161,7 @@ public class DynamoDBService {
             throw new IllegalStateException(MessageFormat.format(
                     "Cannot fetch {0} entity because it does not belong to any DynamoDBTable", targetClass.getSimpleName()));
         }
-        String tableName = targetClass.getAnnotation(DynamoDBTable.class).name();
+        String tableName = targetClass.getAnnotation(DynamoDBTable.class).value();
         return getEntity(targetClass, createGetItemRequest(tableName, keys));
     }
 
@@ -187,7 +186,7 @@ public class DynamoDBService {
             throw new IllegalStateException(MessageFormat.format(
                     "Cannot delete {0} entity because it does not belong to any DynamoDBTable", targetClass.getSimpleName()));
         }
-        String tableName = targetClass.getAnnotation(DynamoDBTable.class).name();
+        String tableName = targetClass.getAnnotation(DynamoDBTable.class).value();
         return deleteEntity(createDeleteItemRequest(tableName, keys));
     }
 
@@ -206,5 +205,51 @@ public class DynamoDBService {
             LOGGER.warnf("Could not remove entity. Cause: {}", ex.getMessage());
         }
         return false;
+    }
+
+    public <T> DynamoPage<T> getPage(Class<T> targetClass, DynamoPaginable dynamoPaginable) {
+        return getPage(targetClass, dynamoPaginable, null);
+    }
+
+    public <T> DynamoPage<T> getPage(Class<T> targetClass, DynamoPaginable dynamoPaginable, DynamoFilter filter) {
+        if (!isDynamoEntity(targetClass)) {
+            throw new IllegalStateException(MessageFormat.format(
+                    "Cannot fetch {0} entity because it does not belong to any DynamoDBTable", targetClass.getSimpleName()));
+        }
+        String tableName = targetClass.getAnnotation(DynamoDBTable.class).value();
+        ScanRequest pageRequest = getPageQueryRequest(tableName, dynamoPaginable, filter);
+        ScanResponse queryResponse = dynamoDbClient.scan(pageRequest);
+        List<T> items = queryResponse.items().stream()
+                .map(item -> objectMapper.mapToEntity(targetClass, item))
+                .collect(Collectors.toUnmodifiableList());
+
+        var client = DynamoDbEnhancedClient.builder()
+                .dynamoDbClient(dynamoDbClient)
+                .build();
+
+        return new DynamoPage<>(items,
+                dynamoPaginable.getPageSize(),
+                dynamoPaginable.getStartAt(),
+                queryResponse.lastEvaluatedKey());
+    }
+
+    private ScanRequest getPageQueryRequest(String tableName, DynamoPaginable paginable, DynamoFilter filter) {
+        return ScanRequest.builder()
+                .tableName(tableName)
+                .expressionAttributeNames(Optional.ofNullable(filter)
+                        .map(DynamoFilter::getExpressionAttributeNames)
+                        .filter(names -> !names.isEmpty())
+                        .orElse(null))
+                .expressionAttributeValues(Optional.ofNullable(filter)
+                        .map(DynamoFilter::getExpressionAttributeValues)
+                        .filter(values -> !values.isEmpty())
+                        .orElse(null))
+                .filterExpression(Optional.ofNullable(filter)
+                        .map(DynamoFilter::getCondition)
+                        .filter(conditon -> !conditon.isEmpty())
+                        .orElse(null))
+                .limit(paginable.getPageSize())
+                .exclusiveStartKey(paginable.getStartAt())
+                .build();
     }
 }

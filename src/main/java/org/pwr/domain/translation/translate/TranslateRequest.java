@@ -37,10 +37,24 @@ public class TranslateRequest {
         return new Builder();
     }
 
+    public static Builder builder(TranslateRequest translateRequest) {
+        return new Builder(translateRequest);
+    }
+
     public static class Builder {
         private String text;
         private String sourceLang;
         private String targetLang;
+
+        private Builder() {
+            // empty
+        }
+
+        private Builder(TranslateRequest translateRequest) {
+            text = translateRequest.text;
+            sourceLang = translateRequest.sourceLang;
+            targetLang = translateRequest.targetLang;
+        }
 
         public Builder withText(String text) {
             this.text = text;
