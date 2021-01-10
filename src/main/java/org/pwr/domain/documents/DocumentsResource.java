@@ -26,6 +26,9 @@ public class DocumentsResource {
     DocumentsService documentsService;
 
     @Inject
+    DocumentMapper documentMapper;
+
+    @Inject
     UserIdentity userIdentity;
 
     @Inject
@@ -39,10 +42,10 @@ public class DocumentsResource {
     }
 
     @GET
-    public DynamoPage<DocumentEntity> searchDocuments(@BeanParam DynamoPaginable paginable,
+    public DynamoPage<DocumentDTO> searchDocuments(@BeanParam DynamoPaginable paginable,
                                                       @BeanParam DocumentSearchFilter documentSearchFilter) {
         authorizationService.checkPermissions(userIdentity, UserGroups.CLIENT);
-        return documentsService.getDocuments(paginable, documentSearchFilter);
+        return documentsService.getDocuments(paginable, documentSearchFilter).mapTo(documentMapper::toDTO);
     }
 
     @GET

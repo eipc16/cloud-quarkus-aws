@@ -6,7 +6,8 @@ import java.util.stream.Stream;
 public enum UserGroups {
     MANAGER("manager"),
     CLIENT("client"),
-    WORKER("worker", Collections.singleton(UserGroups.CLIENT));
+    WORKER("worker", Collections.singleton(UserGroups.CLIENT)),
+    ADMIN("admin", new HashSet<>(Arrays.asList(MANAGER, CLIENT, WORKER)));
 
     private String name;
     private Set<UserGroups> extendedGroups = new HashSet<>();

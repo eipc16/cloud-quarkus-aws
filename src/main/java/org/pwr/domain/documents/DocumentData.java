@@ -15,6 +15,11 @@ public class DocumentData extends MultipartBody {
     @Inject
     TranslateConfiguration translateConfiguration;
 
+    @JsonProperty("name")
+    @FormParam("name")
+    @PartType(MediaType.TEXT_PLAIN)
+    private String name;
+
     @JsonProperty("sourceLang")
     @FormParam("sourceLang")
     @PartType(MediaType.TEXT_PLAIN)
@@ -24,6 +29,10 @@ public class DocumentData extends MultipartBody {
     @FormParam("targetLang")
     @PartType(MediaType.TEXT_PLAIN)
     private String targetLanguage;
+
+    public String getName() {
+        return name;
+    }
 
     public String getSourceLanguage() {
         return Optional.ofNullable(sourceLanguage).orElse(translateConfiguration.getDefaultSourceLanguage());

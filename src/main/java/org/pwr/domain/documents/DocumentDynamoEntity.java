@@ -20,6 +20,8 @@ public class DocumentDynamoEntity {
     @AttributeConverter(FileDetailsConverter.class)
     private FileDetails fileDetails;
 
+    private String name;
+
     private String uploadedBy;
 
     @AttributeConverter(LocalDateTimeConverter.class)
@@ -60,6 +62,10 @@ public class DocumentDynamoEntity {
 
     public String getId() {
         return id;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public FileDetails getFileDetails() {
@@ -125,6 +131,8 @@ public class DocumentDynamoEntity {
     private DocumentDynamoEntity(Builder builder) {
         id = Optional.ofNullable(builder.id)
                 .orElseGet(() -> UUID.randomUUID().toString());
+        name = Optional.ofNullable(builder.name)
+                .orElseGet(() -> builder.fileDetails.getOriginalName().orElse("<unknown>"));
         fileDetails = builder.fileDetails;
         uploadedBy = builder.uploadedBy;
         uploadedAt = builder.uploadedAt;
@@ -152,6 +160,7 @@ public class DocumentDynamoEntity {
 
     static class Builder {
         private String id;
+        private String name;
         private FileDetails fileDetails;
         private String uploadedBy;
         private LocalDateTime uploadedAt;
@@ -174,6 +183,7 @@ public class DocumentDynamoEntity {
 
         private Builder(DocumentDynamoEntity documentDynamoEntity) {
             id = documentDynamoEntity.id;
+            name = documentDynamoEntity.name;
             fileDetails = documentDynamoEntity.fileDetails;
             uploadedBy = documentDynamoEntity.uploadedBy;
             uploadedAt = documentDynamoEntity.uploadedAt;
@@ -193,6 +203,11 @@ public class DocumentDynamoEntity {
 
         public Builder withId(String id) {
             this.id = id;
+            return this;
+        }
+
+        public Builder withName(String name) {
+            this.name = name;
             return this;
         }
 

@@ -1,5 +1,7 @@
 package org.pwr.domain.documents;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.pwr.domain.buckets.FileDetails;
 import org.pwr.domain.ocr.TextRecognitionResult;
 import org.pwr.domain.translation.TranslationResult;
@@ -10,13 +12,18 @@ import java.util.Optional;
 public class DocumentEntity {
 
     private String id;
+    private String name;
     private String uploadedBy;
-    private LocalDateTime uploadedAt;
     private String modifiedBy;
-    private LocalDateTime modifiedAt;
     private FileDetails fileDetails;
     private TextRecognitionResult textRecognitionResult;
     private TranslationResult translationResult;
+
+    @JsonProperty("uploadedAt")
+    private LocalDateTime uploadedAt;
+
+    @JsonProperty("modifiedAt")
+    private LocalDateTime modifiedAt;
 
     private DocumentEntity() {
         //
@@ -24,6 +31,7 @@ public class DocumentEntity {
 
     private DocumentEntity(Builder builder) {
         id = builder.id;
+        name = builder.name;
         uploadedBy = builder.uploadedBy;
         uploadedAt = builder.uploadedAt;
         modifiedBy = builder.modifiedBy;
@@ -35,6 +43,10 @@ public class DocumentEntity {
 
     public Optional<String> getId() {
         return Optional.ofNullable(id);
+    }
+
+    public String getName() {
+        return Optional.ofNullable(name).orElseGet(() -> fileDetails.getOriginalName().orElse("<unknown>"));
     }
 
     public String getUploadedBy() {
@@ -69,12 +81,27 @@ public class DocumentEntity {
         return new Builder(fileDetails, uploadedBy, uploadedAt);
     }
 
+    @JsonGetter("uploadedAt")
+    public String getUploadedAtAsString() {
+        return Optional.ofNullable(uploadedAt)
+                .map(LocalDateTime::toString)
+                .orElse(null);
+    }
+
+    @JsonGetter("modifiedAt")
+    public String getModifiedAtAsString() {
+        return Optional.ofNullable(modifiedAt)
+                .map(LocalDateTime::toString)
+                .orElse(null);
+    }
+
     public static Builder builder(DocumentEntity documentEntity) {
         return new Builder(documentEntity);
     }
 
     public static class Builder {
         private String id;
+        private String name;
         private String uploadedBy;
         private LocalDateTime uploadedAt;
         private String modifiedBy;
@@ -91,6 +118,7 @@ public class DocumentEntity {
 
         private Builder(DocumentEntity documentEntity) {
             id = documentEntity.id;
+            name = documentEntity.name;
             uploadedBy = documentEntity.uploadedBy;
             uploadedAt = documentEntity.uploadedAt;
             modifiedBy = documentEntity.modifiedBy;
@@ -102,6 +130,11 @@ public class DocumentEntity {
 
         public Builder withId(String id) {
             this.id = id;
+            return this;
+        }
+
+        public Builder withName(String name) {
+            this.name = name;
             return this;
         }
 

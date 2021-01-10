@@ -82,8 +82,7 @@ public class DocumentSearchFilter implements DynamoFilter {
         List<String> conditions = new ArrayList<>();
 
         if(ocrStatuses != null && !ocrStatuses.isEmpty()) {
-            String ocrStatuesKeys = IntStream.of(ocrStatuses.size())
-                    .map(i -> i - 1)
+            String ocrStatuesKeys = IntStream.range(0, ocrStatuses.size())
                     .mapToObj(String::valueOf)
                     .map(i -> MessageFormat.format(":ocr{0}", i))
                     .collect(Collectors.joining(", "));
@@ -94,8 +93,7 @@ public class DocumentSearchFilter implements DynamoFilter {
         }
 
         if(translateStatuses != null && !translateStatuses.isEmpty()) {
-            String statusKeys = IntStream.of(translateStatuses.size())
-                    .map(i -> i - 1)
+            String statusKeys = IntStream.range(0, translateStatuses.size())
                     .mapToObj(String::valueOf)
                     .map(i -> MessageFormat.format(":translate{0}", i))
                     .collect(Collectors.joining(", "));

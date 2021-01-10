@@ -11,6 +11,7 @@ public class DocumentMapper {
     DocumentEntity toEntity(DocumentDynamoEntity documentDynamoEntity) {
         return DocumentEntity.builder(documentDynamoEntity.getFileDetails(), documentDynamoEntity.getUploadedBy(), documentDynamoEntity.getUploadedAt())
                 .withId(documentDynamoEntity.getId())
+                .withName(documentDynamoEntity.getName())
                 .withModifiedBy(documentDynamoEntity.getModifiedBy().orElse(null))
                 .withModifiedAt(documentDynamoEntity.getModifiedAt().orElse(null))
                 .withTextRecognitionResult(TextRecognitionResult.builder(mapToTextRecognitionResultType(documentDynamoEntity.getOcrStatus()))
@@ -62,6 +63,7 @@ public class DocumentMapper {
 
     DocumentDynamoEntity toDynamoEntity(DocumentEntity documentEntity) {
         DocumentDynamoEntity.Builder builder = DocumentDynamoEntity.builder(documentEntity.getFileDetails())
+                .withName(documentEntity.getName())
                 .withId(documentEntity.getId().orElse(null))
                 .withUploadedAt(documentEntity.getUploadedAt())
                 .withUploadedBy(documentEntity.getUploadedBy())
@@ -117,5 +119,25 @@ public class DocumentMapper {
             default:
                 return ProcessingStatus.NOT_STARTED;
         }
+    }
+
+    DocumentDTO toDTO(DocumentEntity documentEntity) {
+        return DocumentDTO.builder(documentEntity.getFileDetails())
+                .withId(documentEntity.getId().orElse(null))
+                .withModifiedAt(documentEntity.getModifiedAt().orElse(null))
+                .withModifiedBy(documentEntity.getModifiedBy().orElse(null))
+                .withUploadedAt(documentEntity.getUploadedAt())
+                .withUploadedBy(documentEntity.getUploadedBy())
+                .withTextRecognitionResult(documentEntity.getTextRecognitionResult()
+                        .map(TextRecognitionResult::getResultType)
+                        .map(this::mapToProcessingStatus).orElse(null))
+                .withTextRecognitionConfidence(documentEntity.getTextRecognitionResult().map(TextRecognitionResult::getConfidence).orElse(0d))
+                .withTranslationResult(documentEntity.getTranslationResult()
+                        .map(TranslationResult::getResultType)
+                        .map(this::mapToProcessingStatus)
+                        .orElse(null))
+                .withTranslationConfidence(documentEntity.getTranslationResult().map(TranslationResult::getConfidence).orElse(0d))
+                .withName(documentEntity.getName())
+                .build();
     }
 }

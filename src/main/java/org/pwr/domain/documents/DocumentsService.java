@@ -77,7 +77,7 @@ public class DocumentsService {
 
     private DocumentEntity processUploadedFile(DocumentData documentData, FileDetails fileDetails, String user) {
         TextRecognitionResult textRecognitionResult = performTextRecognition(fileDetails);
-        DocumentEntity entity = buildEntityBeforeTranslation(fileDetails, textRecognitionResult, user);
+        DocumentEntity entity = buildEntityBeforeTranslation(fileDetails, documentData.getName(), textRecognitionResult, user);
         if (textRecognitionResult.getResultType().equals(TextRecognitionResult.ResultType.SUCCESS) && textRecognitionResult.getResult().isPresent()) {
             TranslationResult translationResult = performTextTranslation(documentData, textRecognitionResult);
             entity = DocumentEntity.builder(entity)
@@ -87,8 +87,9 @@ public class DocumentsService {
         return documentsRepository.saveDocumentData(entity);
     }
 
-    private DocumentEntity buildEntityBeforeTranslation(FileDetails fileDetails, TextRecognitionResult textRecognitionResult, String user) {
+    private DocumentEntity buildEntityBeforeTranslation(FileDetails fileDetails, String name, TextRecognitionResult textRecognitionResult, String user) {
         return DocumentEntity.builder(fileDetails, user, LocalDateTime.now())
+                .withName(name)
                 .withTextRecognitionResult(textRecognitionResult)
                 .withTranslationResult(TranslationResult.builder(TranslationResult.ResultType.NOT_STARTED)
                         .build())

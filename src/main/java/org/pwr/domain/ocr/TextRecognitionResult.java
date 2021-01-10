@@ -1,5 +1,7 @@
 package org.pwr.domain.ocr;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -15,6 +17,13 @@ public class TextRecognitionResult {
         this.resultType = builder.resultType;
         this.result = builder.result;
         this.ocrProcessedAt = builder.ocrProcessedAt;
+    }
+
+    @JsonGetter("ocrProcessedAt")
+    public String getOCRProcessedAtAsString() {
+        return Optional.ofNullable(ocrProcessedAt)
+                .map(LocalDateTime::toString)
+                .orElse(null);
     }
 
     public double getConfidence() {

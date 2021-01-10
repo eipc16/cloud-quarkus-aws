@@ -1,5 +1,7 @@
 package org.pwr.domain.translation;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -20,6 +22,13 @@ public class TranslationResult {
         targetLanguage = builder.targetLanguage;
         resultType = builder.resultType;
         translatedAt = builder.translatedAt;
+    }
+
+    @JsonGetter("translatedAt")
+    public String getTranslatedAtAsString() {
+        return Optional.ofNullable(translatedAt)
+                .map(LocalDateTime::toString)
+                .orElse(null);
     }
 
     public Optional<String> getTranslatedText() {
