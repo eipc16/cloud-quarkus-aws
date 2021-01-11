@@ -3,17 +3,12 @@ package org.pwr.domain.documents;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jboss.resteasy.annotations.providers.multipart.PartType;
 import org.pwr.domain.buckets.MultipartBody;
-import org.pwr.infrastructure.config.TranslateConfiguration;
 
-import javax.inject.Inject;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.core.MediaType;
 import java.util.Optional;
 
 public class DocumentData extends MultipartBody {
-
-    @Inject
-    TranslateConfiguration translateConfiguration;
 
     @JsonProperty("name")
     @FormParam("name")
@@ -35,10 +30,10 @@ public class DocumentData extends MultipartBody {
     }
 
     public String getSourceLanguage() {
-        return Optional.ofNullable(sourceLanguage).orElse(translateConfiguration.getDefaultSourceLanguage());
+        return Optional.ofNullable(sourceLanguage).orElse("en");
     }
 
     public String getTargetLanguage() {
-        return Optional.ofNullable(targetLanguage).orElse(translateConfiguration.getDefaultTargetLanguage());
+        return Optional.ofNullable(targetLanguage).orElse("pl");
     }
 }

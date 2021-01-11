@@ -15,7 +15,7 @@ public class DocumentMapper {
                 .withModifiedBy(documentDynamoEntity.getModifiedBy().orElse(null))
                 .withModifiedAt(documentDynamoEntity.getModifiedAt().orElse(null))
                 .withTextRecognitionResult(TextRecognitionResult.builder(mapToTextRecognitionResultType(documentDynamoEntity.getOcrStatus()))
-                        .withConfidence(documentDynamoEntity.getOCRConfidence().orElse(null))
+                        .withConfidence(documentDynamoEntity.getOCRConfidence().map(x -> x == 100 ? x : x * 100).orElse(null))
                         .withOCRProcessedAt(documentDynamoEntity.getOcrProcessedAt().orElse(null))
                         .withResult(documentDynamoEntity.getOCRResult().orElse(null))
                         .build())
