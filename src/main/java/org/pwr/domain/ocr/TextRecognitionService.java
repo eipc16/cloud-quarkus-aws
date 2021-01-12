@@ -60,6 +60,7 @@ public class TextRecognitionService {
         return TextRecognitionResult.builder(TextRecognitionResult.ResultType.INSUFFICIENT_CONFIDENCE)
                 .withOCRProcessedAt(processedAt)
                 .withConfidence(response.getConfidence())
+                .withResult(response.getResult())
                 .build();
     }
 
