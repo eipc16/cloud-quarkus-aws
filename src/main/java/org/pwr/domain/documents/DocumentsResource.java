@@ -11,6 +11,7 @@ import org.pwr.infrastructure.identity.UserGroups;
 import org.pwr.infrastructure.identity.UserIdentity;
 
 import javax.annotation.security.PermitAll;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -20,6 +21,7 @@ import javax.ws.rs.core.Response;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @PermitAll
+@RequestScoped
 public class DocumentsResource {
 
     @Inject
