@@ -121,7 +121,7 @@ public class DocumentMapper {
         }
     }
 
-    DocumentDTO toDTO(DocumentEntity documentEntity) {
+    public DocumentDTO toDTO(DocumentEntity documentEntity) {
         return DocumentDTO.builder(documentEntity.getFileDetails())
                 .withId(documentEntity.getId().orElse(null))
                 .withModifiedAt(documentEntity.getModifiedAt().orElse(null))

@@ -1,11 +1,18 @@
 package org.pwr.documents;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.vertx.core.json.JsonObject;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.pwr.domain.documents.DocumentsResource;
+import org.junit.jupiter.api.TestInstance;
+import org.pwr.domain.documents.*;
+import org.pwr.infrastructure.dynamodb.DynamoPage;
+import org.pwr.infrastructure.dynamodb.DynamoPaginable;
 
+import javax.inject.Inject;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -13,13 +20,23 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 import static io.restassured.RestAssured.given;
-
+import static org.hamcrest.CoreMatchers.is;
 
 @QuarkusTest
 @TestHTTPEndpoint(DocumentsResource.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class DocumentsResourceTest {
 
-    private String getToken() throws IOException, InterruptedException {
+    @Inject
+    DocumentsService documentsService;
+
+    @Inject
+    DocumentMapper documentMapper;
+
+    String token;
+
+    @BeforeAll
+    void setUp() throws IOException, InterruptedException {
         var client = HttpClient.newHttpClient();
 
         JsonObject AuthParameters = new JsonObject();
@@ -41,17 +58,22 @@ public class DocumentsResourceTest {
 
         JsonObject responseBody = new JsonObject(response.body());
 
-        return responseBody.getJsonObject("AuthenticationResult").getString("AccessToken");
+        token = responseBody.getJsonObject("AuthenticationResult").getString("AccessToken");
     }
 
     @Test
-    public void testSearchDocumentsEndpointUnauthorized() {
-        given().when().get().then().statusCode(401);
+    public void testSearchDocumentsEndpointAuthorized() throws IOException {
+        DynamoPage<DocumentDTO> dynamoPage = documentsService.getDocuments(new DynamoPaginable(), new DocumentSearchFilter()).mapTo(documentMapper::toDTO);
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(dynamoPage);
+
+        given().header("Authorization", "Bearer " + token).when().get().then().statusCode(200).body(is(json));
     }
 
     @Test
-    public void testSearchDocumentsEndpointAuthorized() throws IOException, InterruptedException {
-        given().header("Authorization", "Bearer " + this.getToken())
-                .when().get().then().statusCode(200);
+    public void testUploadDocumentEndpointAuthorized() {
+        DocumentData data = new DocumentData();
+        //FIXME
+        given().header("Authorization", "Bearer " + token).when().param("documentData", data).post().then().statusCode(500);
     }
 }
