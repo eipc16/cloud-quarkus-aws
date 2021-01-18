@@ -36,4 +36,16 @@ public class DocumentData extends MultipartBody {
     public String getTargetLanguage() {
         return Optional.ofNullable(targetLanguage).orElse("pl");
     }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setSourceLanguage(String sourceLanguage) {
+        this.sourceLanguage = sourceLanguage;
+    }
+
+    public void setTargetLanguage(String targetLanguage) {
+        this.targetLanguage = targetLanguage;
+    }
 }

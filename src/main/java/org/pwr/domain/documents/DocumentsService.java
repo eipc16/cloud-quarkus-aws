@@ -5,12 +5,11 @@ import org.pwr.domain.buckets.FileDetails;
 import org.pwr.domain.buckets.FileDownloadInformation;
 import org.pwr.domain.buckets.StreamingResponse;
 import org.pwr.domain.ocr.TextRecognitionResult;
-import org.pwr.domain.ocr.TextRecognitionService;
+import org.pwr.domain.ocr.TextRecognitionServiceImpl;
 import org.pwr.domain.translation.TranslationResult;
-import org.pwr.domain.translation.TranslationService;
+import org.pwr.domain.translation.TranslationServiceImpl;
 import org.pwr.domain.translation.translate.TranslateRequest;
 import org.pwr.infrastructure.config.DocumentsConfiguration;
-import org.pwr.infrastructure.config.TranslateConfiguration;
 import org.pwr.infrastructure.dynamodb.DynamoPage;
 import org.pwr.infrastructure.dynamodb.DynamoPaginable;
 
@@ -30,16 +29,16 @@ public class DocumentsService {
 
     private final DocumentsConfiguration configuration;
     private final BucketServiceImpl bucketService;
-    private final TextRecognitionService textRecognitionService;
-    private final TranslationService translationService;
-    private final DocumentsRepository documentsRepository;
+    private final TextRecognitionServiceImpl textRecognitionService;
+    private final TranslationServiceImpl translationService;
+    private final DocumentsRepositoryImpl documentsRepository;
 
     @Inject
     DocumentsService(DocumentsConfiguration configuration,
                      BucketServiceImpl bucketService,
-                     TextRecognitionService textRecognitionService,
-                     TranslationService translationService,
-                     DocumentsRepository documentsRepository) {
+                     TextRecognitionServiceImpl textRecognitionService,
+                     TranslationServiceImpl translationService,
+                     DocumentsRepositoryImpl documentsRepository) {
         this.configuration = configuration;
         this.bucketService = bucketService;
         this.textRecognitionService = textRecognitionService;
