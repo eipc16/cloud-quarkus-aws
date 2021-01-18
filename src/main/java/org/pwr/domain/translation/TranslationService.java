@@ -59,6 +59,7 @@ public class TranslationService {
     private TranslationResult buildInsufficientConfidenceResult(TranslateResponse response, LocalDateTime processedAt) {
         return TranslationResult.builder(TranslationResult.ResultType.INSUFFICIENT_CONFIDENCE)
                 .withTranslatedAt(processedAt)
+                .withTranslatedText(response.getResult())
                 .withConfidence(response.getConfidence())
                 .build();
     }
