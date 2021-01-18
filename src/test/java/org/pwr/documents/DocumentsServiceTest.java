@@ -8,10 +8,7 @@ import org.pwr.domain.buckets.BucketsService;
 import org.pwr.domain.buckets.FileDetails;
 import org.pwr.domain.buckets.FileDownloadInformation;
 import org.pwr.domain.buckets.StreamingResponse;
-import org.pwr.domain.documents.DocumentData;
-import org.pwr.domain.documents.DocumentEntity;
-import org.pwr.domain.documents.DocumentSearchFilter;
-import org.pwr.domain.documents.DocumentsRepository;
+import org.pwr.domain.documents.*;
 import org.pwr.domain.ocr.TextRecognitionResult;
 import org.pwr.domain.ocr.TextRecognitionService;
 import org.pwr.domain.translation.TranslationResult;
@@ -33,17 +30,24 @@ import java.util.function.Function;
 @QuarkusTest
 public class DocumentsServiceTest {
 
+    private DocumentsService documentsService = new DocumentsService(
+            new TestDocumentsConfiguration(),
+            new TestBucketServiceImpl(),
+            new TestTextRecognitionService(),
+            new TestTranslationService(),
+            new TestDocumentRepository()
+    );
+
     @Test
     public void testProcessDocument() {
-        BucketsService bucketService = new TestBucketServiceImpl();
-        DocumentData data = new DocumentData();
-        DocumentEntity expected = processUploadedFile(data, new FileDetails(), "user");
+        String userName = "user";
+        DocumentData data = new DocumentData(); // zbuduj jakieś przykładowe documentData
+        DocumentEntity expected = processUploadedFile(data, new FileDetails(), "user"); // Tutaj zbuduj ręcznie! Wynik który powinien zostać zwrócony
+        DocumentEntity processedEntity = documentsService.processDocument(data, "user"); // tutaj odpalamy serwis który ma zamockowane dependency (zaimplementuj je na wzór tego co jest w DocumentRepository, tj. ta implementacja ma jakoś przypominać jak to faktycznie działa)
 
-        DocumentEntity documentEntity = bucketService.uploadFileAndThen("bucket", "key", data, processUploadedFile(data, "user"));
-
-        Assertions.assertEquals(expected.getId(), documentEntity.getId());
-        Assertions.assertEquals(expected.getTextRecognitionResult().flatMap(TextRecognitionResult::getResult), documentEntity.getTextRecognitionResult().flatMap(TextRecognitionResult::getResult));
-        Assertions.assertEquals(expected.getTranslationResult().flatMap(TranslationResult::getTranslatedText), documentEntity.getTranslationResult().flatMap(TranslationResult::getTranslatedText));
+        Assertions.assertEquals(expected.getId(), processedEntity.getId());
+        Assertions.assertEquals(expected.getTextRecognitionResult().flatMap(TextRecognitionResult::getResult), processedEntity.getTextRecognitionResult().flatMap(TextRecognitionResult::getResult));
+        Assertions.assertEquals(expected.getTranslationResult().flatMap(TranslationResult::getTranslatedText), processedEntity.getTranslationResult().flatMap(TranslationResult::getTranslatedText));
     }
 
     private Function<FileDetails, DocumentEntity> processUploadedFile(DocumentData documentData, String user) {

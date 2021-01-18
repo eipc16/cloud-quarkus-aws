@@ -4,6 +4,7 @@ import org.pwr.domain.buckets.BucketsService;
 import org.pwr.domain.buckets.FileDetails;
 import org.pwr.domain.buckets.MultipartBody;
 import org.pwr.domain.buckets.StreamingResponse;
+import org.pwr.infrastructure.qualifiers.TestBean;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.model.Bucket;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -14,6 +15,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.function.Function;
 
+@TestBean
 public class TestBucketServiceImpl implements BucketsService {
     @Override
     public List<Bucket> getBucketList() {

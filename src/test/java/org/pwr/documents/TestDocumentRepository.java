@@ -7,33 +7,35 @@ import org.pwr.domain.documents.DocumentSearchFilter;
 import org.pwr.domain.documents.DocumentsRepository;
 import org.pwr.infrastructure.dynamodb.DynamoPage;
 import org.pwr.infrastructure.dynamodb.DynamoPaginable;
+import org.pwr.infrastructure.qualifiers.TestBean;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import java.time.LocalDateTime;
 import java.util.*;
 
+@TestBean
 public class TestDocumentRepository implements DocumentsRepository {
+
+    private Map<String, DocumentEntity> dataSource = new HashMap<>();
+
     @Override
     public DocumentEntity saveDocumentData(DocumentEntity documentEntity) {
-        return documentEntity;
+        String documentEntityId = documentEntity.getId()
+                .orElseGet(() -> UUID.randomUUID().toString());
+        DocumentEntity documentEntityToSave = DocumentEntity.builder(documentEntity)
+                .withId(documentEntityId)
+                .build();
+        dataSource.put(documentEntityId, documentEntityToSave);
+        return documentEntityToSave;
     }
 
     @Override
     public DynamoPage<DocumentEntity> getDocuments(DynamoPaginable dynamoPaginable, DocumentSearchFilter documentSearchFilter) {
-        DocumentEntity documentEntity = DocumentEntity.builder(new FileDetails(), "test", LocalDateTime.now()).build();
-        List<DocumentEntity> list = new ArrayList<>();
-        list.add(documentEntity);
-        Map<String, AttributeValue> map = new HashMap<>();
-        return new DynamoPage<>(list, 15, map, map);
-    }
-
-    @Override
-    public DocumentEntity getDocumentById(String documentId) {
-        return DocumentEntity.builder(new FileDetails(), "test", LocalDateTime.now()).build();
+        return new DynamoPage<DocumentEntity>(dataSource.values(), dataSource.size(), Collections.emptyMap(), Collections.emptyMap()); //upraszczamy sobie trochę sprawę bo trudno to zamockować
     }
 
     @Override
     public Optional<DocumentEntity> findDocumentById(String documentId) {
-        return Optional.empty();
+        return Optional.ofNullable(dataSource.get(documentId));
     }
 }

@@ -1,6 +1,5 @@
 package org.pwr.domain.buckets;
 
-import io.smallrye.mutiny.Multi;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.regions.Region;
@@ -8,16 +7,17 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
 import javax.enterprise.context.Dependent;
+import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Dependent
+@Default
 public class BucketServiceImpl implements BucketsService {
 
     private final S3Client s3Client;
@@ -92,7 +92,7 @@ public class BucketServiceImpl implements BucketsService {
     public void deleteFile(FileDetails fileDetails) {
         DeleteObjectRequest request = s3ResourceHelper.buildDeleteRequest(fileDetails.getBucketName(), fileDetails.getObjectKey());
         DeleteObjectResponse response = s3Client.deleteObject(request);
-        if(response == null) {
+        if (response == null) {
             throw new RuntimeException("Could delete file");
         }
     }

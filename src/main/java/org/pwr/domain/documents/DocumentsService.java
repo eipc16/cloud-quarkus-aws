@@ -1,20 +1,22 @@
 package org.pwr.domain.documents;
 
-import org.pwr.domain.buckets.BucketServiceImpl;
+import org.pwr.domain.buckets.BucketsService;
 import org.pwr.domain.buckets.FileDetails;
 import org.pwr.domain.buckets.FileDownloadInformation;
 import org.pwr.domain.buckets.StreamingResponse;
 import org.pwr.domain.ocr.TextRecognitionResult;
-import org.pwr.domain.ocr.TextRecognitionServiceImpl;
+import org.pwr.domain.ocr.TextRecognitionService;
 import org.pwr.domain.translation.TranslationResult;
-import org.pwr.domain.translation.TranslationServiceImpl;
+import org.pwr.domain.translation.TranslationService;
 import org.pwr.domain.translation.translate.TranslateRequest;
 import org.pwr.infrastructure.config.DocumentsConfiguration;
 import org.pwr.infrastructure.dynamodb.DynamoPage;
 import org.pwr.infrastructure.dynamodb.DynamoPaginable;
 
 import javax.enterprise.context.Dependent;
+import javax.enterprise.inject.Default;
 import javax.inject.Inject;
+import javax.inject.Qualifier;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -28,17 +30,17 @@ import java.util.stream.Stream;
 public class DocumentsService {
 
     private final DocumentsConfiguration configuration;
-    private final BucketServiceImpl bucketService;
-    private final TextRecognitionServiceImpl textRecognitionService;
-    private final TranslationServiceImpl translationService;
-    private final DocumentsRepositoryImpl documentsRepository;
+    private final BucketsService bucketService;
+    private final TextRecognitionService textRecognitionService;
+    private final TranslationService translationService;
+    private final DocumentsRepository documentsRepository;
 
     @Inject
-    DocumentsService(DocumentsConfiguration configuration,
-                     BucketServiceImpl bucketService,
-                     TextRecognitionServiceImpl textRecognitionService,
-                     TranslationServiceImpl translationService,
-                     DocumentsRepositoryImpl documentsRepository) {
+    public DocumentsService(DocumentsConfiguration configuration,
+                     BucketsService bucketService,
+                     TextRecognitionService textRecognitionService,
+                     TranslationService translationService,
+                     DocumentsRepository documentsRepository) {
         this.configuration = configuration;
         this.bucketService = bucketService;
         this.textRecognitionService = textRecognitionService;

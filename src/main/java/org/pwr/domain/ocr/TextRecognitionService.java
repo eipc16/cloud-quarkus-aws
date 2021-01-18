@@ -6,5 +6,5 @@ import org.pwr.domain.ocr.tesseract.TesseractResponse;
 import java.time.LocalDateTime;
 
 public interface TextRecognitionService {
-    public TextRecognitionResult performTextRecognition(FileDetails document);
+    TextRecognitionResult performTextRecognition(FileDetails document);
 }

@@ -13,7 +13,10 @@ public interface DocumentsRepository {
 
     DynamoPage<DocumentEntity> getDocuments(DynamoPaginable dynamoPaginable, DocumentSearchFilter documentSearchFilter);
 
-    DocumentEntity getDocumentById(String documentId);
+    default DocumentEntity getDocumentById(String documentId) {
+        return findDocumentById(documentId)
+                .orElseThrow(() -> new NoSuchElementException("Cannot find document with id: " + documentId));
+    }
 
     Optional<DocumentEntity> findDocumentById(String documentId);
 }
