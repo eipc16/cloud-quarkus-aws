@@ -12,8 +12,7 @@ import org.pwr.infrastructure.dynamodb.DynamoPage;
 import org.pwr.infrastructure.dynamodb.DynamoPaginable;
 
 import javax.inject.Inject;
-import java.io.BufferedReader;
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -71,9 +70,14 @@ public class DocumentsResourceTest {
     }
 
     @Test
-    public void testUploadDocumentEndpointAuthorized() {
-        DocumentData data = new DocumentData();
-        //FIXME
-        given().header("Authorization", "Bearer " + token).when().param("documentData", data).post().then().statusCode(500);
+    public void testUploadDocumentEndpointAuthorized() throws IOException {
+        given().header("Authorization", "Bearer " + token)
+                .param("fileName", "test.jpg")
+                .param("mimeType", "image/jpeg")
+                .param("name", "123")
+                .param("sourceLang", "en")
+                .param("targetLang", "pl")
+                .multiPart("file", new File("src/test/java/org/pwr/documents/test.jpg"))
+                .when().post().then().statusCode(200);
     }
 }
