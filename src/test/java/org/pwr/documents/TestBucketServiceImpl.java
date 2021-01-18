@@ -5,13 +5,12 @@ import org.pwr.domain.buckets.FileDetails;
 import org.pwr.domain.buckets.MultipartBody;
 import org.pwr.domain.buckets.StreamingResponse;
 import org.pwr.infrastructure.qualifiers.TestBean;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
-import software.amazon.awssdk.services.s3.model.Bucket;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.S3Object;
+import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.List;
 import java.util.function.Function;
 
@@ -29,12 +28,16 @@ public class TestBucketServiceImpl implements BucketsService {
 
     @Override
     public FileDetails uploadFile(String bucketName, MultipartBody file) {
-        return null;
+        return new FileDetails(bucketName, file.fileName);
     }
 
     @Override
     public FileDetails uploadFile(String bucketName, String objectKey, MultipartBody file) {
-        return new FileDetails(bucketName, file.fileName, objectKey);
+        String originalName = String.valueOf(file.fileName);
+        file.fileName = objectKey;
+        FileDetails fileDetails = uploadFile(bucketName, file);
+        file.fileName = originalName;
+        return new FileDetails(fileDetails.getBucketName(), originalName, fileDetails.getObjectKey());
     }
 
     @Override
@@ -42,6 +45,10 @@ public class TestBucketServiceImpl implements BucketsService {
         FileDetails fileDetails = uploadFile(bucketName, objectKey, file);
         T result;
         result = mapper.apply(fileDetails);
+
+        if (result == null) {
+            throw new RuntimeException("Result shouldn't be null at this point!");
+        }
 
         return result;
     }
